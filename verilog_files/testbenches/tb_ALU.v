@@ -153,6 +153,36 @@ module tb_ALU();
     if (N)
       $display("error: N flag set (a = %d, b = %d)", a, b);
 
+    // =========================
+    // TEST UNSIGNED ARITHMETIC 
+    // =========================
+
+    // test no borrow when result is signed negative
+    alu_sel = SUB;
+    a = 2**16 - 1;
+    b = 1;
+    #10;
+    if (C || L) 
+      $display("error: incorrect flags for unsigned subtraction (a = %d, b = %d)", a, b);
+    // test no borrow when result is signed positive 
+    a = 10; 
+    b = 5;
+    #10;
+    if (C || L) 
+      $display("error: incorrect flags for unsigned subtraction (a = %d, b = %d)", a, b);
+
+    // test borrow when result is signed negative
+    a = 1;
+    b = 5;
+    #10;
+    if (!C || !L) 
+      $display("error: incorrect flags for unsigned subtraction (a = %d, b = %d)", a, b);
+    // test borrow when result is signed positive 
+    a = 1; 
+    b = 2**16 - 1;
+    #10;
+    if (!C || !L) 
+      $display("error: incorrect flags for unsigned subtraction (a = %d, b = %d)", a, b);
 
     // ======================== 
     // TEST SIGNED ARITHMETIC

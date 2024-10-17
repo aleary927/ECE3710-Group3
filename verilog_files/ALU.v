@@ -7,6 +7,14 @@ module ALU #(parameter DATA_WIDTH = 16)
     output reg C, L, F, Z, N
 );
 
+// parameters for function select
+localparam ADD = 3'b000; 
+localparam SUB = 3'b001; 
+localparam AND = 3'b010; 
+localparam OR  = 3'b011; 
+localparam XOR = 3'b100; 
+localparam NOT = 3'b101;
+
 always @(*) begin
     C = 0;
     L = 0;
@@ -15,7 +23,7 @@ always @(*) begin
     N = 0;
 
     case(select)
-        3'b000: begin  // add
+        ADD: begin  // add
             // add and include carry bit as unsigned overflow
             {C, out} = a + b;
             // signed overflow flag (a and b same sign but result opposite)
@@ -25,7 +33,7 @@ always @(*) begin
             N = (out[DATA_WIDTH - 1] & ~F) | (a[DATA_WIDTH - 1] & b[DATA_WIDTH - 1]);
         end
 
-        3'b001: begin  // subtract
+        SUB: begin  // subtract
             // subtract and include borrow bit as unsigned overflow
             {C, out} = a - b;
             // overflow flag
@@ -35,10 +43,10 @@ always @(*) begin
             N = (out[DATA_WIDTH - 1] & ~F) | (a[DATA_WIDTH - 1] & ~b[DATA_WIDTH - 1]);
         end
 
-        3'b010: out = a & b;  // AND
-        3'b011: out = a | b;  // OR
-        3'b100: out = a ^ b;  // XOR
-        3'b101: out = ~a;     // NOT
+        AND: out = a & b;  // AND
+        OR: out = a | b;  // OR
+        XOR: out = a ^ b;  // XOR
+        NOT: out = ~a;     // NOT
 
         //3'b110: out = a << b[3:0];  // left shift
         //3'b111: out = $signed(a) >>> b[3:0];  // Arithmetic right shift

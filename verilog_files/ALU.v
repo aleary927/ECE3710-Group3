@@ -16,19 +16,25 @@ always @(*) begin
 
     case(select)
         3'b000: begin  // add
+            // add and include carry bit as unsigned overflow
             {C, out} = a + b;
-            // overflow flag
+            // signed overflow flag (a and b same sign but result opposite)
             F = (~a[DATA_WIDTH - 1] & ~b[DATA_WIDTH - 1] & out[DATA_WIDTH - 1]) | (a[DATA_WIDTH - 1] & b[DATA_WIDTH - 1] & ~out[DATA_WIDTH - 1]);
-            N = out[DATA_WIDTH - 1]; 
+            // signed negative flag (negative result with no overflow, or
+            // a and b both negative)
+            N = (out[DATA_WIDTH - 1] & ~F) | (a[DATA_WIDTH - 1] & b[DATA_WIDTH - 1]);
         end
 
         3'b001: begin  // subtract
+            // subtract and include borrow bit as unsigned overflow
             {C, out} = a - b;
             // overflow flag
             F = (a[DATA_WIDTH - 1] & ~b[DATA_WIDTH - 1] & ~out[DATA_WIDTH - 1]) | (~a[DATA_WIDTH - 1] & b[DATA_WIDTH - 1] & out[DATA_WIDTH - 1]);
-            N = out[DATA_WIDTH - 1];
+            // signed negative flagt (negative resutl with no overflow, or
+            // a negative and b positive)
+            N = (out[DATA_WIDTH - 1] & ~F) | (a[DATA_WIDTH - 1] & ~b[DATA_WIDTH - 1]);
         end
-        
+
         3'b010: out = a & b;  // AND
         3'b011: out = a | b;  // OR
         3'b100: out = a ^ b;  // XOR
@@ -45,32 +51,9 @@ always @(*) begin
         Z = 1;
 
     // Less-than flag (signed compare)
-    if ($signed(a) < $signed(b))
+    if ($unsigned(a) < $unsigned(b))
         L = 1;
 
-    // N flag recalculate
-    if (F == 1) begin
-        if (select == 3'b000) begin  // case: add
-            // overflow occurs when (positive + positive), N = 0
-            if (a[DATA_WIDTH - 1] == 0 && b[DATA_WIDTH - 1] == 0) begin
-                N = 0;
-            end
-            // overflow occurs when (negative + negative), N = 1
-            else if (a[DATA_WIDTH - 1] == 1 && b[DATA_WIDTH - 1] == 1) begin
-                N = 1;
-            end
-        end
-        else if (select == 3'b001) begin  // case: subtract
-            // overflow occurs when (positive - negative), N = 0
-            if (a[DATA_WIDTH - 1] == 0 && b[DATA_WIDTH - 1] == 1) begin
-                N = 0;
-            end
-            // overflow occurs when (negative - positive), N = 1
-            else if (a[DATA_WIDTH - 1] == 1 && b[DATA_WIDTH - 1] == 0) begin
-                N = 1;
-            end
-        end
-    end
 end
 
 endmodule

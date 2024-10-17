@@ -29,6 +29,7 @@ module tb_RF();
 
   // main testbench code
   initial begin
+    $display("Starting testbench for RF (register file)");
 
     // ===================
     // TEST WRITING TO RF
@@ -39,14 +40,14 @@ module tb_RF();
     wr_en = 1;
     wr_data = 1000;
     #10;
-    if (rf.registers[addr1] != wr_data)
+    if (rf.RAM[addr1] != wr_data)
       $display("error: result not written to register when write enabled");
 
     // test not writing when write enable not high
     addr1 = 6;
     wr_en = 0;
     #10;
-    if (rf.registers[addr1] == wr_data)
+    if (rf.RAM[addr1] == wr_data)
       $display("error: unexpected write to register when write not enabled");
 
 
@@ -63,13 +64,13 @@ module tb_RF();
     addr1 = 5;
     addr2 = 6;
     #10;
-    if (rd_data1 != rf.registers[addr1] || rd_data2 != rf.registers[addr2])
+    if (rd_data1 != rf.RAM[addr1] || rd_data2 != rf.RAM[addr2])
       $display("error: dual read did not function properly");
 
     // test reading from same register
     addr2 = addr1;
     #10;
-    if (rd_data1 != rf.registers[addr1] || rd_data2 != rf.registers[addr1])
+    if (rd_data1 != rf.RAM[addr1] || rd_data2 != rf.RAM[addr1])
       $display("error: reading from same address did not function properly");
 
     // =======================
@@ -82,6 +83,7 @@ module tb_RF();
 
     // test changing flags when comparision op performed
 
+    $display("testbench complete");
   end
 
 endmodule

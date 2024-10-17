@@ -19,6 +19,7 @@ module tb_ALU();
   parameter AND = 3'b010;
   parameter OR  = 3'b011;
   parameter XOR = 3'b100;
+  parameter NOT = 3'b101;
 
   integer res;    // result
 
@@ -81,6 +82,13 @@ module tb_ALU();
     #10;
     if (alu_out != res)
       $display("error: incorrect XOR result (expected: %d, got: %d)", res, alu_out);
+
+    // test NOT 
+    a = 16'b0;
+    alu_sel = NOT;
+    #10;
+    if (alu_out != 16'b1111111111111111) 
+      $display("error: incorrect NOT result (expected %d, got %d)", res, alu_out);
 
     // ==============================
     // BASIC FLAG TESTS

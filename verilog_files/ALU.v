@@ -34,8 +34,8 @@ always @(*) begin
         3'b100: out = a ^ b;  // XOR
         3'b101: out = ~a;     // NOT
 
-        3'b110: out = a << b[3:0];  // left shift
-        3'b111: out = $signed(a) >>> b[3:0];  // Arithmetic right shift
+        //3'b110: out = a << b[3:0];  // left shift
+        //3'b111: out = $signed(a) >>> b[3:0];  // Arithmetic right shift
 
         default: out = 0;
     endcase

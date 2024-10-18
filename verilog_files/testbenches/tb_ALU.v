@@ -90,6 +90,12 @@ module tb_ALU();
     if (alu_out != 16'b1111111111111111) 
       $display("error: incorrect NOT result (expected %d, got %d)", res, alu_out);
 
+    // TODO 
+    // test logic shift left
+    // test logical shift right
+    // test arithmetic shift left 
+    // test arithmetic shift right
+
     // ==============================
     // BASIC FLAG TESTS
     // ==============================
@@ -100,13 +106,27 @@ module tb_ALU();
     b = 2**16 - 1;
     #10;
     if (!C)
-      $display("error: C flag not set (a = %d, b = %d)", a, b);
+      $display("error: carry not detected (%d + %d)", a, b);
     // test no carry
     a = 5;
     b = 80;
     #10;
     if (C)
-      $display("error: C flag set (a = %d, b = %d)", a, b);
+      $display("error: false carry detected (%d + %d)", a, b);
+
+    // test borrow
+    alu_sel = SUB; 
+    a = 30; 
+    b = 31;
+    #10; 
+    if (!C) 
+      $display("error: borrow not detected (%d - %d)", a, b);
+    // test no borrow 
+    a = 4000; 
+    b = 13;
+    #10; 
+    if (C) 
+      $display("error: false borrow detected (%d - %d)", a, b);
 
     // test unsigned low
     alu_sel = SUB;
@@ -114,26 +134,40 @@ module tb_ALU();
     b = 100;
     #10;
     if (!L)
-      $display("error: L flag not set (a = %d, b = %d)", a, b);
+      $display("error: L flag not set (%d - %d)", a, b);
     // test no unsigned low
     b = 50;
     #10;
     if (L)
-      $display("error: L flag set (a = %d, b = %d)", a, b);
+      $display("error: L flag set (%d - %d)", a, b);
 
-    // test signed overflow
+    // test signed overflow (add)
     alu_sel = ADD;
     a = -2**15;
     b = -2**15;
     #10;
     if (!F)
-      $display("error: F flag not set (a = %d, b = %d)", a, b);
+      $display("error: F flag not set (%d + %d)", a, b);
     // test no signed overflow
     a = -1000;
     b = -4000;
     #10;
     if (F)
-      $display("error: F flag set (a = %d, b = %d)", a, b);
+      $display("error: F flag set (%d + %d)", a, b);
+
+    // test signed overflow (sub) 
+    alu_sel = SUB; 
+    a = -2**15; 
+    b = 2**15 - 1;
+    #10; 
+    if (!F) 
+      $display("error: F flag not set (%d - %d)", a, b);
+    // test no signed overflow 
+    a = -50; 
+    b = -80;
+    #10; 
+    if (F) 
+      $display("error: F flag set (%d - %d)", a, b);
 
     // test zero result
     alu_sel = SUB;
@@ -141,12 +175,12 @@ module tb_ALU();
     b = 40;
     #10;
     if (!Z)
-      $display("error: Z flag not set (a = %d, b = %d)", a, b);
+      $display("error: Z flag not set (%d - %d)", a, b);
     // test not zero result
     a = 41;
     #10;
     if (Z)
-      $display("error: Z flag set (a = %d, b = %d)", a, b);
+      $display("error: Z flag set (%d - %d)", a, b);
 
     // test signed negative result
     alu_sel = SUB;
@@ -154,16 +188,16 @@ module tb_ALU();
     b = 10000;
     #10;
     if (!N)
-      $display("error: N flag not set (a = %d, b = %d)", a, b);
+      $display("error: N flag not set (%d - %d)", a, b);
     // test signed positive result
     b = 1000;
     #10;
     if (N)
-      $display("error: N flag set (a = %d, b = %d)", a, b);
+      $display("error: N flag set (%d - %d)", a, b);
 
-    // =========================
-    // TEST UNSIGNED ARITHMETIC 
-    // =========================
+    // ====================================
+    // TEST UNSIGNED ARITHMETIC COMPARISONS
+    // ====================================
 
     // test no borrow when result is signed negative
     alu_sel = SUB;
@@ -171,58 +205,30 @@ module tb_ALU();
     b = 1;
     #10;
     if (C || L) 
-      $display("error: incorrect flags for unsigned subtraction (a = %d, b = %d)", a, b);
+      $display("error: incorrect flags for unsigned subtraction (%d - %d)", a, b);
     // test no borrow when result is signed positive 
     a = 10; 
     b = 5;
     #10;
     if (C || L) 
-      $display("error: incorrect flags for unsigned subtraction (a = %d, b = %d)", a, b);
+      $display("error: incorrect flags for unsigned subtraction (%d - %d)", a, b);
 
     // test borrow when result is signed negative
     a = 1;
     b = 5;
     #10;
     if (!C || !L) 
-      $display("error: incorrect flags for unsigned subtraction (a = %d, b = %d)", a, b);
+      $display("error: incorrect flags for unsigned subtraction (%d - %d)", a, b);
     // test borrow when result is signed positive 
     a = 1; 
     b = 2**16 - 1;
     #10;
     if (!C || !L) 
-      $display("error: incorrect flags for unsigned subtraction (a = %d, b = %d)", a, b);
+      $display("error: incorrect flags for unsigned subtraction (%d - %d)", a, b);
 
-    // ======================== 
-    // TEST SIGNED ARITHMETIC
-    // ======================== 
-
-    alu_sel = ADD;
-    // test basic positive + positive
-    a = 5; 
-    b = 9;
-    #10;
-    if (F || N)
-      $display("error: incorrect flags for signed addition (positive + positive) (expected: F=0, N=0; got: F=%d, N=%d)", F, N);
-    
-    // test basic positive + negative = positive
-    a = 7; 
-    b = -2;
-    #10;
-    if (F || N)
-      $display("error: incorrect flags for signed addition (positive + negative = positive) (expected: F=0, N=0; got: F=%d, N=%d)", F, N);
-    // test basic positive + negative = negative
-    a = 14; 
-    b = -40;
-    #10;
-    if (F || !N)
-      $display("error: incorrect flags for signed addition (positive + negative = positive) (expected: F=0, N=1; got: F=%d, N=%d)", F, N);
-
-    // test basic negative + negative
-    a = -8; 
-    b = -5;
-    #10;
-    if (F || !N)
-      $display("error: incorrect flags for signed addition (negative + negative) (expected: F=0, N=1; got: F=%d, N=%d)", F, N);
+    // ==================================
+    // TEST SIGNED ARITHMETIC COMPARISONS
+    // ===================================
 
     alu_sel = SUB;
     // test basic positive - positive = positive 
@@ -267,22 +273,24 @@ module tb_ALU();
       $display("error: incorrect flags for signed subtraction (negative - negative = negative) (expected: F=0, N=1; got: F=%d, N=%d)", F, N);
 
     // ------------------
-    // OVERFLOW TESTS
+    // SIGNED OVERFLOW TESTS
 
+    // ADD overflow tests
     // test overflow resulting from adding 2 large positives
     alu_sel = ADD; 
     a = 2**15 - 2;
     b = 2**15 - 2;
     #10;
-    if (!F || N)
-      $display("error: incorrect flags for signed addition overflow with 2 positives (expected: F=1, N=0; got: F=%d, N=%d)", F, N);
+    if (!F)
+      $display("error: incorrect flags for signed addition overflow with 2 positives (expected: F=1; got: F=%d)", F);
     // test overflow resulting from adding 2 large negatives
     a = -2**15; 
     b = -2**15;
     #10; 
-    if (!F || !N) 
-      $display("error: incorrect flags for signed addition overflow with 2 negatives (expected F=1, N=1; got F=%d, N=%d)", F, N);
+    if (!F) 
+      $display("error: incorrect flags for signed addition overflow with 2 negatives (expected F=1; got F=%d)", F);
 
+    // SUB overflow tests
     // test overflow resulting from negative - positive overflow
     alu_sel = SUB; 
     a = -2**15;

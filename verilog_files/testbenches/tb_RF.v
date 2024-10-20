@@ -7,15 +7,23 @@ module tb_RF();
   reg clk;
 
   reg [3:0] addr1, addr2; // addresses
-  reg wr_en, f_en;           // write enable
+  reg wr_en;        // write enable
+  reg cmp_f_en, of_f_en, z_f_en;           // flag enables
   reg [15:0] wr_data;    // write data
+  wire [15:0] psr;     // processor status register
   reg C, L, F, Z, N;      // flags
   wire [15:0] rd_data1, rd_data2; // read data
 
-  RF rf(.clk(clk), .wr_en(wr_en), .f_en(f_en), .wr_data(wr_data), .addr1(addr1), .addr2(addr2), .rd_data1(rd_data1), .rd_data2(rd_data2), .C_in(C), .L_in(L), .F_in(F), .Z_in(Z), .N_in(N));
+  RF rf(
+    .clk(clk), 
+    .wr_en(wr_en), 
+    .cmp_f_en(cmp_f_en), .of_f_en(of_f_en), .z_f_en(z_f_en), 
+    .wr_data(wr_data), 
+    .psr(psr),
+    .addr1(addr1), .addr2(addr2), 
+    .rd_data1(rd_data1), .rd_data2(rd_data2), 
+    .C_in(C), .L_in(L), .F_in(F), .Z_in(Z), .N_in(N));
   
-  // index of PSR register
-  localparam PSR = 15;
   // index's of flag bits in PSR register
   localparam C_IND = 0;
   localparam L_IND = 2;
@@ -35,7 +43,9 @@ module tb_RF();
     addr2 = 0;
     wr_data = 0;
     wr_en = 0;
-    f_en = 0;
+    cmp_f_en = 0;
+    of_f_en = 0; 
+    z_f_en = 0;
     C = 0; 
     L = 0; 
     F = 0; 
@@ -65,14 +75,6 @@ module tb_RF();
     #10;
     if (rf.registers[addr1] == wr_data)
       $display("error: unexpected write to register when write not enabled");
-
-    // try writing to PSR register 
-    addr1 = PSR; 
-    wr_data = 2**16 - 1;
-    wr_en = 1;
-    #10; 
-    if (rf.registers[addr1] == wr_data)
-      $display("error: writing to PSR register not blocked");
 
     // perform write so that there is data for further tests
     wr_en = 1;
@@ -107,20 +109,32 @@ module tb_RF();
     F = 1;
     Z = 1;
     N = 1;
-    f_en = 0;
+    cmp_f_en = 0;
+    of_f_en = 0; 
+    z_f_en = 0;
     wr_en = 0;
     #10;
-    if (rf.registers[PSR] != 0) 
-      $display("error: flags were written to when f_en low");
+    if (psr != 0) 
+      $display("error: flags were written to when flag enable signals all low");
     wr_en = 1;
-    if (rf.registers[PSR] != 0) 
-      $display("error: wr_en caused PSR to be written to (should only be written to on f_en)");
+    if (psr != 0) 
+      $display("error: wr_en caused PSR to be written to (should only be written to on flag enable signals)");
 
-    // test that flags are updated when write to flags enabled
-    f_en = 1;
+    // test that comparison flags are updated when write to flags enabled
+    cmp_f_en = 1;
     #10; 
-    if (rf.registers[PSR] == 0) 
-      $display("error: PSR not written to on f_en");
+    if (!psr[L_IND] || !rf.psr[N_IND]) 
+      $display("error: comparison flags not set on cmp_f_en");
+
+    of_f_en = 1; 
+    #10; 
+    if (!psr[C_IND] || !psr[F_IND])
+      $display("error: overflow flags not set on of_f_en");
+
+    z_f_en = 1; 
+    #10; 
+    if (!psr[Z_IND]) 
+      $display("error: zero flag not set on z_f_en");
 
     $display("testbench complete");
   end

@@ -4,7 +4,7 @@
 
 module tb_ALU();
 
-  reg [2:0] alu_sel;     // ALU function selection
+  reg [3:0] alu_sel;     // ALU function selection
   reg [15:0] a, b;        // ALU data inputs
   wire [15:0] alu_out;    // output from ALU
   wire C, L, F, Z, N;     // output flags from ALU
@@ -14,14 +14,18 @@ module tb_ALU();
   ALU alu(.a(a), .b(b), .select(alu_sel), .out(alu_out), .C(C), .L(L), .F(F), .Z(Z), .N(N));
 
   // parameters for ALU function selection
-  parameter ADD = 3'b000;
-  parameter SUB = 3'b001;
-  parameter AND = 3'b010;
-  parameter OR  = 3'b011;
-  parameter XOR = 3'b100;
-  parameter NOT = 3'b101;
+  parameter ADD = 4'b0000;
+  parameter SUB = 4'b0001;
+  parameter AND = 4'b0010;
+  parameter OR  = 4'b0011;
+  parameter XOR = 4'b0100;
+  parameter NOT = 4'b0101;
+  parameter LSH = 4'b0110; 
+  parameter ASH = 4'b0111;
+  parameter MUL = 4'b1000;
 
   integer res;    // result
+  reg [15:0] sh_res;     // result for shifts
 
   // instanciate inputs
   initial begin
@@ -90,11 +94,73 @@ module tb_ALU();
     if (alu_out != 16'b1111111111111111) 
       $display("error: incorrect NOT result (expected %d, got %d)", res, alu_out);
 
-    // TODO 
     // test logic shift left
+    alu_sel = LSH;
+    a = 7; 
+    b = 6;
+    sh_res = a << b;
+    #10; 
+    if (alu_out != sh_res)
+      $display("error: incorrect LSH result (0b%16b << %d) (expected 0b%16b, got 0b%16b)", a, b, sh_res, alu_out);
     // test logical shift right
+    a = 2**15 + 2**14; // most significant 2 bits 1
+    b = -10;        // negative corresponds to right shift
+    sh_res = a >> 10;
+    #10; 
+    if (alu_out != sh_res)
+      $display("error: incorrect LSH result (0b%16b >> %d) (expected 0b%16b, got 0b%16b)", a, 10, sh_res, alu_out);
+
     // test arithmetic shift left 
-    // test arithmetic shift right
+    alu_sel = ASH;
+    a = -40; 
+    b = 2;
+    sh_res = a << b;
+    #10; 
+    if ($signed(alu_out) != sh_res) 
+      $display("error: incorrect ASH result (0b%16b << %d) (expected 0b%16b, got 0b%16b)", a, b, sh_res, alu_out);
+    // test arithmetic shift right (positive)
+    a = 29; 
+    b = -3;
+    sh_res = $signed(a) >>> 3;
+    #10;
+    if (alu_out != sh_res)
+      $display("error: incorrect ASH result (0b%16b >>> %d) (expected 0b%16b, got 0b%16b)", a, 3, sh_res, alu_out);
+    // test arithmetic shift right (negative) 
+    a = -500; 
+    b = -6;
+    sh_res = $signed(a) >>> 6;
+    #10;
+    if (alu_out != sh_res)
+      $display("error: incorrect ASH result (0b%16b >>> %d) (expected 0b%16b, got 0b%16b)", a, 6, sh_res, alu_out);
+
+    // test multiplication
+    alu_sel = MUL;
+    a = 35; 
+    b = 8; 
+    res = a * b; 
+    #10; 
+    if (alu_out != res) 
+      $display("error: incorrect MUL result (%d * %d) (expected %d, got %d)", a, b, res, alu_out);
+    // multiply by negative 
+    a = -5; 
+    b = 10; 
+    res = $signed(a) * $signed(b); 
+    #10;
+    if ($signed(alu_out) != $signed(res)) 
+      $display("error: incorrect MUL result (%d * %d) (expected %d, got %d)", a, b, res, alu_out);
+    // multiply 2 negatives 
+    a = -9; 
+    b = -2000; 
+    res = $signed(a) * $signed(b); 
+    #10;
+    if ($signed(alu_out) != $signed(res)) 
+      $display("error: incorrect MUL result (%d * %d) (expected %d, got %d)", a, b, res, alu_out);
+    // multiply by 0 
+    b = 0; 
+    res = a * b;
+    #10;
+    if (alu_out != res) 
+      $display("error: incorrect MUL result (%d * %d) (expected %d, got %d)", a, b, res, alu_out);
 
     // ==============================
     // BASIC FLAG TESTS

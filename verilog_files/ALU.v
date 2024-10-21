@@ -1,8 +1,15 @@
+/*
+* Aritmetic logic unit for CR-16 CPU. 
+* 
+* operations include: ADD, SUB, AND, OR, XOR, NOT, 
+* LSH, ASH, MUL
+*/
+
 module ALU #(parameter DATA_WIDTH = 16)
 (
     input [DATA_WIDTH - 1:0] a,
     input [DATA_WIDTH - 1:0] b,
-    input [2:0] select,
+    input [3:0] select,
     output reg [DATA_WIDTH - 1:0] out,
     output reg C, L, F, Z, N
 );
@@ -11,14 +18,15 @@ wire [$clog2(DATA_WIDTH) - 1:0] shift_amount;
 wire [DATA_WIDTH - 1:0] inv_b;
 
 // parameters for function select
-localparam ADD = 3'b000; 
-localparam SUB = 3'b001; 
-localparam AND = 3'b010; 
-localparam OR  = 3'b011; 
-localparam XOR = 3'b100; 
-localparam NOT = 3'b101;
-localparam LSH = 3'b110; 
-localparam ASH = 3'b111;
+localparam ADD = 4'b0000; 
+localparam SUB = 4'b0001; 
+localparam AND = 4'b0010; 
+localparam OR  = 4'b0011; 
+localparam XOR = 4'b0100; 
+localparam NOT = 4'b0101;
+localparam LSH = 4'b0110; 
+localparam ASH = 4'b0111;
+localparam MUL = 4'b1000;
 
 // if b is negative, shift amount is 2's complement inverse of b
 assign inv_b = ~b + 1;
@@ -71,7 +79,7 @@ always @(*) begin
           else
             out = a << shift_amount;
         end
-
+        MUL: out = a * b;
         default: out = 0;
     endcase
 

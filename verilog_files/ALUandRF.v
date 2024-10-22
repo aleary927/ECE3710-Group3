@@ -5,7 +5,8 @@ module ALUandRF(
    input [1:0] sel,         // alu func select
    input [2:0] a_in, b_in,  // a and b input to ALU
     output [4:0] alu_res, 
-    output [4:0] reg_data
+	output [4:0] reg_data, 
+	output C, L, F, Z, N
 );
 
     // Parameters
@@ -15,7 +16,7 @@ module ALUandRF(
     // Wires to connect ALU and Register File
     wire [DATA_WIDTH - 1:0] alu_out;  // ALU output
     wire [DATA_WIDTH - 1:0] rd_data1, rd_data2;  // Register file read data
-    wire C, L, F, Z, N;               
+   // wire C, L, F, Z, N;               
     wire wr_en;                         
    wire [15:0] psr; 
 

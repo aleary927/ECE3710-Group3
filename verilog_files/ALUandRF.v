@@ -1,4 +1,4 @@
-module TOP_LEVEL(
+module ALUandRF(
     input clk,                   // Clock signal
 	 input led_select,
 	 input write_enable,

@@ -6,5 +6,6 @@ CPU design.
 | --------------- | --------------- | --------------- |
 | ALU | select | selects the function of the ALU |
 | RF | wr_en | controls whether new data is written to a register |
-| RF | f_en | controls whether new flag values are written |
-
+| RF | of_f_en | controls whether new overflow flag (C, F) values are written |
+| RF | cmp_f_en | controls whether new comparision flag (N, L) values are written | 
+| RF | z_f_en | controls whether a new zero flag (Z) value is written |

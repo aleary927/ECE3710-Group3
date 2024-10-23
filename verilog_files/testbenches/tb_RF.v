@@ -8,28 +8,16 @@ module tb_RF();
 
   reg [3:0] addr1, addr2; // addresses
   reg wr_en;        // write enable
-  reg cmp_f_en, of_f_en, z_f_en;           // flag enables
   reg [15:0] wr_data;    // write data
-  wire [15:0] psr;     // processor status register
-  reg C, L, F, Z, N;      // flags
   wire [15:0] rd_data1, rd_data2; // read data
 
   RF rf(
     .clk(clk), 
     .wr_en(wr_en), 
-    .cmp_f_en(cmp_f_en), .of_f_en(of_f_en), .z_f_en(z_f_en), 
     .wr_data(wr_data), 
-    .psr(psr),
     .addr1(addr1), .addr2(addr2), 
-    .rd_data1(rd_data1), .rd_data2(rd_data2), 
-    .C_in(C), .L_in(L), .F_in(F), .Z_in(Z), .N_in(N));
+    .rd_data1(rd_data1), .rd_data2(rd_data2));
   
-  // index's of flag bits in PSR register
-  localparam C_IND = 0;
-  localparam L_IND = 2;
-  localparam F_IND = 5;
-  localparam Z_IND = 6;
-  localparam N_IND = 7;
 
   // generate clock signal
   initial begin
@@ -43,14 +31,6 @@ module tb_RF();
     addr2 = 0;
     wr_data = 0;
     wr_en = 0;
-    cmp_f_en = 0;
-    of_f_en = 0; 
-    z_f_en = 0;
-    C = 0; 
-    L = 0; 
-    F = 0; 
-    Z = 0; 
-    N = 0; 
   end
 
   // main testbench code
@@ -99,43 +79,7 @@ module tb_RF();
     if (rd_data1 != rf.registers[addr1] || rd_data2 != rf.registers[addr1])
       $display("error: reading from same address did not function properly");
 
-    // =======================
-    // TEST TAKING IN NEW FLAGS
-    // ======================= 
-
-    // test that flags are not changed when write to flags not enabled
-    C = 1;
-    L = 1;
-    F = 1;
-    Z = 1;
-    N = 1;
-    cmp_f_en = 0;
-    of_f_en = 0; 
-    z_f_en = 0;
-    wr_en = 0;
-    #10;
-    if (psr != 0) 
-      $display("error: flags were written to when flag enable signals all low");
-    wr_en = 1;
-    if (psr != 0) 
-      $display("error: wr_en caused PSR to be written to (should only be written to on flag enable signals)");
-
-    // test that comparison flags are updated when write to flags enabled
-    cmp_f_en = 1;
-    #10; 
-    if (!psr[L_IND] || !rf.psr[N_IND]) 
-      $display("error: comparison flags not set on cmp_f_en");
-
-    of_f_en = 1; 
-    #10; 
-    if (!psr[C_IND] || !psr[F_IND])
-      $display("error: overflow flags not set on of_f_en");
-
-    z_f_en = 1; 
-    #10; 
-    if (!psr[Z_IND]) 
-      $display("error: zero flag not set on z_f_en");
-
+    
     $display("testbench complete");
   end
 

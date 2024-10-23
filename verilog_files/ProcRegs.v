@@ -6,6 +6,7 @@ module ProcRegs(
   input clk, 
   input cmp_f_en, of_f_en, z_f_en,        // flag enables
   input pc_en, instr_en,          // enables for each special register
+  input [15:0] instr_in, pc_in,
   // input cfg_en, dcr_en, dsr_en, 
   // input car_en, 
   // input isp_en, intbase_en,
@@ -16,7 +17,7 @@ module ProcRegs(
   // output reg [20:0] isp, intbase,
   output reg [15:0] psr,              // processor status register
   output reg [15:0] instr,            // instruction register
-  output reg [20:0] pc                // program counter
+  output reg [15:0] pc                // program counter
 );
 
 
@@ -27,7 +28,7 @@ module ProcRegs(
   localparam Z_IND = 6;
   localparam N_IND = 7;
 
-  // flag update
+  // write to regs
   always @(posedge clk) begin 
       // update comparison flags
       if (cmp_f_en) begin
@@ -42,6 +43,15 @@ module ProcRegs(
       // update zero flag
       if (z_f_en) 
          psr[Z_IND] <= Z_in;
+
+      // update pc 
+      if (pc_en) 
+        ps <= pc_in; 
+
+      // update instr
+      if (instr_en) 
+        instr <= instr_in;
+
   end
 
 endmodule

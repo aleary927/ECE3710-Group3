@@ -46,7 +46,7 @@ module ProcRegs(
 
       // update pc 
       if (pc_en) 
-        ps <= pc_in; 
+        pc <= pc_in; 
 
       // update instr
       if (instr_en) 

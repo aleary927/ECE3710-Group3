@@ -28,6 +28,13 @@ module ProcRegs(
   localparam Z_IND = 6;
   localparam N_IND = 7;
 
+  // initialize registers to all zeros
+  initial begin 
+    psr = 0; 
+    instr = 0; 
+    pc = 0;
+  end
+
   // write to regs
   always @(posedge clk) begin 
       // update comparison flags

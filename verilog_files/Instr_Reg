@@ -1,3 +1,5 @@
+// Baseline without mux info
+
 module instruct_reg(
 	input clk, 
 	input instr_en, // PC fetch

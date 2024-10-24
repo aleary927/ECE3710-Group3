@@ -22,7 +22,7 @@ module PC_ALU(
       OFFSET: n_pc = c_pc + imm;
       // use immediate for absolute
       ABSOLUTE: n_pc = imm;
-      default: n_pc = cpc;
+      default: n_pc = c_pc;
     endcase
   end
 

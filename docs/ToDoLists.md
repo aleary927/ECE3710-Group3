@@ -8,9 +8,9 @@
     * testbench to verify module 
         * verify every datapath manipulation
 * Memory 
-    * testbench to verify module 
-        * test reads and writes of both ports 
-        * test that read and write is syncronous
+    * ~~testbench to verify module~~
+        * ~~test reads and writes of both ports~~
+        * ~~test that read and write is syncronous~~
     * FSM for on-board demo 
         * walk through memory addresses and perform simple modifications 
         * re-read location of write to verify that writing works

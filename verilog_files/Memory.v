@@ -3,7 +3,7 @@
 *
 * Dual port, syncronous read and write.
 */
-module Memory #(parameter DATA_WIDTH = 16, SIZE = 1000)
+module Memory #(parameter DATA_WIDTH = 16, SIZE = 1024)
 (
   input clk,
   input wr_en1, wr_en2,
@@ -18,7 +18,7 @@ module Memory #(parameter DATA_WIDTH = 16, SIZE = 1000)
   // load memory
   integer i;
   initial begin 
-    // $readmemh("/path/to/file.dat", ram);
+    // $readmemh("../mem_files/test.dat", ram);
 
     // for testing only
     for (i = 0; i < SIZE; i = i + 1) begin 
@@ -26,9 +26,8 @@ module Memory #(parameter DATA_WIDTH = 16, SIZE = 1000)
     end
   end
 
-  // write and read on rising edge of clock
+  // port 1
   always @(posedge clk) begin 
-    // port 1
     if (wr_en1) begin
       ram[addr1] <= wr_data1;
       rd_data1 <= wr_data1;
@@ -36,7 +35,10 @@ module Memory #(parameter DATA_WIDTH = 16, SIZE = 1000)
     else begin
       rd_data1 <= ram[addr1]; 
     end
+  end
 
+  // port 2
+  always @(posedge clk) begin
     // port 2 
     if (wr_en2) begin
       ram[addr2] <= wr_data2;

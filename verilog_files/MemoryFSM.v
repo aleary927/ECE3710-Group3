@@ -86,7 +86,7 @@ module MemoryFSM(
 
   // generate output
   always @(*) begin 
-    case (ns) 
+    case (ps) 
       // init
       S0: begin 
         wr_en = 0; 
@@ -129,11 +129,11 @@ module MemoryFSM(
         data_out = 16'h0; 
         addr = 10'h0;
       end
-      // read from address 0
+      // read from high address
       S7: begin 
         wr_en = 0; 
         data_out = 16'h0; 
-        addr = 10'h0;
+        addr = 10'h3FF;
       end
       default: begin 
         wr_en = 0; 

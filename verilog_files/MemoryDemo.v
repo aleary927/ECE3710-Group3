@@ -6,8 +6,8 @@ module MemoryDemo(
   input clk, 
   input reset_n,
   input next_n,
-  output [6:0] hex0, hex1, hex2,
-  output [9:0] data
+  output [6:0] rd_hex0, rd_hex1, wr_hex0, wr_hex1,
+  output [9:0] leds
 );
 
   // convert reset and next to active high
@@ -36,11 +36,12 @@ module MemoryDemo(
               .data_out(wr_data));
 
   // generate 7-seg display signals
-  hexTo7Seg seg0(.SW(addr[3:0]), .Hex(hex0)); 
-  hexTo7Seg seg1(.SW(addr[7:4]), .Hex(hex1)); 
-  hexTo7Seg seg2(.SW({2'b00, addr[9:8]}), .Hex(hex2));
+  hexTo7Seg rd_seg0(.SW(rd_data[3:0]), .Hex(rd_hex0)); 
+  hexTo7Seg rd_seg1(.SW(rd_data[7:4]), .Hex(rd_hex1)); 
+  hexTo7Seg wr_seg0(.SW(wr_data[3:0]), .Hex(wr_hex0));
+  hexTo7Seg wr_seg1(.SW(wr_data[7:4]), .Hex(wr_hex1));
 
   // output to leds
-  assign data = rd_data[9:0];
+  assign leds = addr;
 
 endmodule

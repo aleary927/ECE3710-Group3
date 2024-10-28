@@ -6,8 +6,9 @@ CPU design.
 | --------------- | --------------- | --------------- |
 | ALU | select | selects the function of the ALU |
 | RF | wr_en | controls whether new data is written to a register |
-| ProcRegs | of_f_en | controls whether new overflow flag (C, F) values are written |
 | ProcRegs | cmp_f_en | controls whether new comparision flag (N, L) values are written | 
+| ProcRegs | of_f_en | controls whether new overflow flag (C, F) values are written |
 | ProcRegs | z_f_en | controls whether a new zero flag (Z) value is written |
-| ProcRegs | pc_en  | controls whether a new value for the program counter is written | 
-| ProcRegs | instr_en | controls whether a new value for the instruction register is written |
+| DATA_PATH | reset | Reset the program counter to 0 |
+| DATA_PATH | pc_en | Program counter enable |
+

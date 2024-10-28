@@ -99,11 +99,11 @@ module MemoryFSM(
         data_out = 16'h3FF; 
         addr = 10'h3FF;
       end
-      // read from high address
+      // write to middle address
       S2: begin 
-        wr_en = 0; 
-        data_out = 16'h0; 
-        addr = 10'h3FF;
+        wr_en = 1; 
+        data_out = 16'hF;; 
+        addr = 10'h07A;
       end
       // write to address 0 
       S3: begin 
@@ -111,29 +111,29 @@ module MemoryFSM(
         data_out = 16'h10;
         addr = 10'h0;
       end
-      // read from address 0
+      // read from high address
       S4: begin 
         wr_en = 0; 
         data_out = 16'h0; 
-        addr = 10'h0;
+        addr = 10'h3FF;
       end
-      // write +3 to address 0
+      // read from address 0, add 3
       S5: begin 
-        wr_en = 1; 
+        wr_en = 0; 
         data_out = data_buffer + 16'h3; 
         addr = 10'h0;
       end
-      // read address 0
+      // write to address 0
       S6: begin 
-        wr_en = 0; 
-        data_out = 16'h0; 
+        wr_en = 1; 
+        data_out = data_buffer + 16'h3;
         addr = 10'h0;
       end
-      // read from high address
+      // read from middle address
       S7: begin 
         wr_en = 0; 
         data_out = 16'h0; 
-        addr = 10'h3FF;
+        addr = 10'h7A;
       end
       default: begin 
         wr_en = 0; 

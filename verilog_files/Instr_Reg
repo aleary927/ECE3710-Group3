@@ -1,8 +1,7 @@
-// Baseline without mux info
-
+// INSTRUCTION REG
 module instruct_reg(
 	input clk, 
-	input instr_en, // Enable from controller
+	input instr_en, 
 	input wire [15:0] instruct_data, 
 	output reg [11:0] instructions,
 	output reg [3:0] opcode); 

@@ -1,24 +1,13 @@
 /* 
 * Processor registers. (all non general purpose regisers)
-* Contains PSR, PC, INSTR registers.
+* Contains PSR
 */
 module ProcRegs(
   input clk, 
   input reset,
   input cmp_f_en, of_f_en, z_f_en,        // flag enables
-  input pc_en, instr_en,          // enables for each special register
-  input [15:0] instr_in, pc_in,
-  // input cfg_en, dcr_en, dsr_en, 
-  // input car_en, 
-  // input isp_en, intbase_en,
   input C_in, L_in, F_in, Z_in, N_in,     // flag inputs
-  // output reg [15:0] cfg, 
-  // output reg [15:0] dcr, dsr, 
-  // output reg [20:0] car,
-  // output reg [20:0] isp, intbase,
-  output reg [15:0] psr,              // processor status register
-  output reg [15:0] instr,            // instruction register
-  output reg [15:0] pc                // program counter
+  output reg [15:0] psr              // processor status register
 );
 
 
@@ -32,23 +21,10 @@ module ProcRegs(
   // initialize registers to all zeros
   initial begin 
     psr = 0; 
-    instr = 0; 
-    pc = 0;
   end
 
   // write to regs
   always @(posedge clk) begin 
-    // reset by reseting program counter to 0
-    if (reset) begin 
-      pc <= 0;
-    end
-    // update pc
-    else if (pc_en) 
-      pc <= pc_in;
-
-    // update instr
-    if (instr_en) 
-      instr <= instr_in;
 
     // update comparison flags
     if (cmp_f_en) begin

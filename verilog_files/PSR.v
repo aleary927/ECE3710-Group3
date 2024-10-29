@@ -1,10 +1,10 @@
 /* 
-* Processor registers. (all non general purpose regisers)
-* Contains PSR
+* Special module for the PSR. 
+* This module allows for PSR to be updated specially.
 */
-module ProcRegs(
+module PSR(
   input clk, 
-  input reset,
+  input reset_n,
   input cmp_f_en, of_f_en, z_f_en,        // flag enables
   input C_in, L_in, F_in, Z_in, N_in,     // flag inputs
   output reg [15:0] psr              // processor status register
@@ -18,13 +18,10 @@ module ProcRegs(
   localparam Z_IND = 6;
   localparam N_IND = 7;
 
-  // initialize registers to all zeros
-  initial begin 
-    psr = 0; 
-  end
-
-  // write to regs
+  // write to reg
   always @(posedge clk) begin 
+    if (!reset_n) 
+      psr <= 0;
 
     // update comparison flags
     if (cmp_f_en) begin

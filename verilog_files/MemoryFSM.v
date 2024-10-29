@@ -117,13 +117,13 @@ module MemoryFSM(
         data_out = 16'h0; 
         addr = 10'h3FF;
       end
-      // read from address 0, add 3
+      // read from address 0
       S5: begin 
         wr_en = 0; 
-        data_out = data_buffer + 16'h3; 
+        data_out = 16'h0; 
         addr = 10'h0;
       end
-      // write to address 0
+      // write to address 0, adding 3 to read value
       S6: begin 
         wr_en = 1; 
         data_out = data_buffer + 16'h3;

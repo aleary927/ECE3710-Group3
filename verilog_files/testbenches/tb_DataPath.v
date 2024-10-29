@@ -9,16 +9,17 @@ module tb_DataPath();
   reg wr_en;        // reg file write en
   reg [3:0] alu_sel;      // alu function
   reg alu_src;      // alu source
-  reg next_instr;
+  reg next_instr;       // use PC as addr
   reg [1:0] wr_bk_sel;    // data to write back to reg file
   reg cmp_f_en, of_f_en, z_f_en;    // flag enables
   reg pc_en, instr_en;      // wr_en for pc, instr regs
   reg [15:0] mem_rd_data;      // data to memory
-  reg [1:0] pc_addr_mode;
+  reg [1:0] pc_addr_mode;     // mode to use to calc next PC
   
   wire [15:0] mem_wr_data;     // data to memory
-  wire [15:0] mem_addr;
+  wire [15:0] mem_addr;       // addr to memory
   wire [3:0] opcode, opcode_ext;  // opcode for controller
+  wire cmp_result;
 
   integer res; // for testing 
 
@@ -62,7 +63,9 @@ module tb_DataPath();
     .mem_rd_data(mem_rd_data), 
     .mem_wr_data(mem_wr_data), 
     .mem_addr(mem_addr),
-    .opcode(opcode), .opcode_ext(opcode_ext)
+    .opcode(opcode), 
+    .opcode_ext(opcode_ext),
+    .cmp_result(cmp_result)
   );
 
   // generate clock 
@@ -137,7 +140,6 @@ module tb_DataPath();
     mem_rd_data = 16'hFFFF; 
     wr_bk_sel = 2'b1;  
     wr_en = 1;
-    // select signal 
     #10; 
     if (datapath.register_file.registers[8] != mem_rd_data) 
       $display("error: could not write from memory to register file");
@@ -157,8 +159,7 @@ module tb_DataPath();
     wr_en = 0;
     
     // test writing data from reg file to memory
-    // load more data 
-    datapath.register_file.registers[0] = 16'h166F;
+    datapath.register_file.registers[0] = 16'h166F; // load more data 
     // store data from reg 0 to addr from reg 8
     datapath.instr_reg.q = 16'h0008;
     #10;
@@ -182,7 +183,8 @@ module tb_DataPath();
 
     // test selecting different alu function  
     // select ADD and SUB and check results,
-    // no need to check other functions
+    // no need to check other functions, just verify 
+    // that selecting a function works
     alu_sel = ADD;
     datapath.instr_reg.q = 16'h0203;  // Rdest = 2, Rsrc = 3
     datapath.register_file.registers[2] = 16'd65;
@@ -219,7 +221,7 @@ module tb_DataPath();
       $display("error: writing result of immediate alu operation failed");
     wr_en = 0;
     
-    // test updating psr flags (if one works they all should so just test Z)
+    // test updating psr flags (if one works they all should, so just test Z)
     datapath.instr_reg.q = 16'h0304;
     alu_sel = SUB;
     datapath.register_file.registers[3] = 16'd60;
@@ -236,11 +238,11 @@ module tb_DataPath();
     // =============
 
     // test incrementing PC
-    datapath.pc.q = 21'b0;
+    datapath.pc.q = 16'b0;
     pc_addr_mode = NEXT_INSTR;
     pc_en = 1;
     #10; 
-    if (datapath.pc_current != 21'b1) 
+    if (datapath.pc_current != 16'b1) 
       $display("error: PC did not increment in NEXT_INSTR mode");
 
     // test adding offset to PC
@@ -248,11 +250,11 @@ module tb_DataPath();
     pc_addr_mode = OFFSET;
     datapath.instr_reg.q = 16'h0008;    // immediate is 8
     #10; 
-    if(datapath.pc_current != 21'd9)  // should be 9 (was 1, added 8)
+    if(datapath.pc_current != 16'd9)  // should be 9 (was 1, added 8)
       $display("error: positive offset PC arithmetic failure");
     datapath.instr_reg.q = 16'h00FD;    // immediate is  -3
     #10; 
-    if(datapath.pc_current != 21'd6) // should be 6 (was 9, subtracted 3) begin
+    if(datapath.pc_current != 16'd6) // should be 6 (was 9, subtracted 3) begin
       $display("error: negative offset PC arithmetic failure");
 
     // test jumping to absolute address
@@ -260,33 +262,33 @@ module tb_DataPath();
     datapath.instr_reg.q = 16'h000C;  // jump to value in reg C
     datapath.register_file.registers[4'hC] = 16'hF67D;  // load address to Rtarget
     #10; 
-    if (datapath.pc_current != 21'hF67D) 
+    if (datapath.pc_current != 16'hF67D) 
       $display("error: jumping to absolute address in reg file failed");
     
     // test not writing to PC
     pc_en = 0;
     datapath.instr_reg.q = 16'h0001;
     datapath.register_file.registers[1] = 16'd2000;
-    datapath.pc.q = 21'b0;
+    datapath.pc.q = 16'b0;
     #10;
-    if (datapath.pc_current == 21'd2000)
+    if (datapath.pc_current == 16'd2000)
       $display("error: PC updated when not enabled");
 
     // test using PC as memory address 
     next_instr = 1;
-    datapath.pc.q = 21'hFFF;
+    datapath.pc.q = 16'hFFF;
     #10;
     if (mem_addr != 16'hFFF) 
       $display("error: using PC as memory address failed");
     next_instr = 0;
 
     // test reseting PC 
-    // note that the other registers reset but only the PC matters, 
+    // note that the other registers will reset but only the PC matters, 
     // as it determines where to get the first instruction from, and
     // all other registers will be overwritten by normal operation
     reset_n = 0;
     #10;
-    if (datapath.pc_current != 21'b0) 
+    if (datapath.pc_current != 16'b0) 
       $display("error: PC did not result correctly");
     reset_n = 1;
 

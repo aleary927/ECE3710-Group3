@@ -4,12 +4,11 @@ CPU design.
 
 | Module | Control Point Name  | Description | 
 | --------------- | --------------- | --------------- |
-| DataPath | clk | system clock|
 | DataPath | reset_n | Reset the program counter to 0 |
 | DataPath | wr_en | Write enable for register file / controls whether new data is written to a register |
 | DataPath | alu_src | ALU source select |
 | DataPath | alu_sel | ALU function select |
-| DataPath | next_instr | @PC_ALU.v next instruction |
+| DataPath | next_instr | use PC as address to fetch next instruction |
 | Memory | mem_wr_en | Memory write enable |
 | DataPath | pc_en | Program counter enable |
 | DataPath | instr_en | instruction register enable |

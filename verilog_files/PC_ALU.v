@@ -1,12 +1,13 @@
 /* 
 * Module to compute new program counter value.
 */
-module PC_ALU(
-  input [20:0] c_pc,      // current pc
-  input [15:0] offset,       // sign extended immediate
-  input [15:0] target,   // absolute address
+module PC_ALU #(parameter PC_WIDTH = 21)
+(
+  input [PC_WIDTH - 1:0] c_pc,      // current pc
+  input [PC_WIDTH - 1:0] offset,       // sign extended immediate
+  input [PC_WIDTH - 1:0] target,   // absolute address
   input [1:0] addr_mode,        // addressing mode
-  output reg [20:0] n_pc  // next pc
+  output reg [PC_WIDTH - 1:0] n_pc  // next pc
   );
 
   // opcodes 
@@ -20,9 +21,9 @@ module PC_ALU(
       // add one for next instruction
       NEXT_INSTR: n_pc = c_pc + 1; 
       // add immediate for offset 
-      OFFSET: n_pc = c_pc + {{5{offset[15]}},offset};   // sign exted
-      // use immediate for absolute
-      ABSOLUTE: n_pc = {5'b0,target};    // zero pad
+      OFFSET: n_pc = c_pc + offset;   // sign exted
+      // use target for absolute
+      ABSOLUTE: n_pc = target;    // zero pad
       default: n_pc = c_pc;
     endcase
   end

@@ -24,10 +24,24 @@ module CPU_Controller(
   output mem_wr_en 
 ); 
 
-// ************************** 
-// Parameters 
-// **************************
+  // ************************** 
+  // Parameters 
+  // **************************
 
+  // ALU function selects
+  localparam ADD = 4'b0000; 
+  localparam SUB = 4'b0001; 
+  localparam AND = 4'b0010; 
+  localparam OR  = 4'b0011; 
+  localparam XOR = 4'b0100; 
+  localparam NOT = 4'b0101;
+  localparam LSH = 4'b0110; 
+  localparam ASH = 4'b0111;
+  localparam MUL = 4'b1000;
+
+  // Opcodes 
+  // TODO add opcodes and opcode_exts
+  
   // FSM states
   localparam FETCH           = 4'b0001;  // Instruction Fetch
 	localparam DECODE          = 4'b0010;  // Decode

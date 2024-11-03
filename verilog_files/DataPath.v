@@ -76,12 +76,13 @@ module DataPath(
 
   // Write-Back Mux: Select data to write back to register file, (alu result, 
   // memory read data, register read data, or immediate)
-  Mux4 #(16) reg_wr_src (
+  Mux5 #(16) reg_wr_src (
     .sel(write_back_sel), 
     .a(alu_result), 
     .b(mem_rd_data), 
     .c(reg_data2),
     .d(immediate),
+    .e(pc_current),
     .out(write_back_data));
 
   // ALU Operand B Mux: Select between immediate and register value

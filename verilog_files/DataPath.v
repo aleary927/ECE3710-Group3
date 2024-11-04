@@ -17,7 +17,7 @@ module DataPath(
     input instr_en,             // Instruction register enable
     input cmp_f_en, of_f_en, z_f_en,  // Processor status register flags enables
     input [1:0] pc_addr_mode,   // PC ALU addressing mode select
-    input [1:0] write_back_sel,   // Select for write-back data to reg file
+    input [2:0] write_back_sel,   // Select for write-back data to reg file
     // mem signals
     input [15:0] mem_rd_data,       // data from memory
     output [15:0] mem_wr_data,      // data to memory
@@ -40,6 +40,7 @@ module DataPath(
   // connector wires for registers
   wire [15:0] pc_current;               // current program counter
   wire [15:0] next_pc;                   // Next program counter value
+  wire [15:0] pc_plus_one;        // current pc + 1
   wire [15:0] current_instr;          // current instruction
   wire [15:0] psr;            // processor status
 
@@ -82,7 +83,7 @@ module DataPath(
     .b(mem_rd_data), 
     .c(reg_data2),
     .d(immediate),
-    .e(pc_current),
+    .e(pc_plus_one),    // will only ever need to write pc + 1 to reg
     .out(write_back_data));
 
   // ALU Operand B Mux: Select between immediate and register value
@@ -167,6 +168,7 @@ module DataPath(
         .offset(immediate),     // for branches
         .target(reg_data2),     // for jumps
         .addr_mode(pc_addr_mode), // select addressing mode
+        .pc_plus_one(pc_plus_one),  // current pc + 1
         .n_pc(next_pc)          // next program counter
    );
 

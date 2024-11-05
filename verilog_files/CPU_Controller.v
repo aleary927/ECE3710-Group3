@@ -360,7 +360,7 @@ module CPU_Controller(
                 // check comparision result, choose next pc based on result
                 // comparision success: absolute address 
                 // comparison not success: increment 
-                pc_addr_mode = branch_result ? PC_ABSOLUTE : PC_INCREMENT; 
+                pc_addr_mode = cmp_result ? PC_ABSOLUTE : PC_INCREMENT; 
               end
             endcase
           end
@@ -400,7 +400,7 @@ module CPU_Controller(
             // check if compare successful to determine pc address 
             // if successful: use offset to calc new pc
             // if unsucessful: increment pc
-            pc_addr_mode = branch_result ? PC_OFFSET : PC_INCREMENT;  
+            pc_addr_mode = cmp_result ? PC_OFFSET : PC_INCREMENT;  
           end
           MOVI_OP: begin 
             reg_wr_en = 1;

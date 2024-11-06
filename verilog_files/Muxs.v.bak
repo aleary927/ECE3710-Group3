@@ -69,13 +69,12 @@ module Mux5 #(parameter DATA_WIDTH = 16)
       3'h3: out = d;
       3'h4: out = e;
       default: out = a;
-		endcase
   end
 
 endmodule
 
 // 6 inputs 
-module Mux6 #(parameter DATA_WIDTH = 16) 
+module Mux5 #(parameter DATA_WIDTH = 16) 
 ( 
   input [DATA_WIDTH - 1:0] a, b, c, d, e, f,
   input [2:0] sel, 
@@ -91,7 +90,6 @@ module Mux6 #(parameter DATA_WIDTH = 16)
       3'h4: out = e;
       3'h5: out = f;
       default: out = a;
-		endcase
   end
 
 endmodule

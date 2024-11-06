@@ -96,7 +96,7 @@ module CPU_Controller(
   localparam LPR_EXT          = 4'b0001;
   localparam SNXB_EXT         = 4'b0010;
   localparam STOR_EXT         = 4'b0100;
-  localparam SPR_EXT          = 4'b0101;
+  localparam SPR_EXT          - 4'b0101;
   localparam ZRXB_EXT         = 4'b0110;
   localparam JAL_EXT          = 4'b1000;
   localparam TBIT_EXT         = 4'b1010;
@@ -340,7 +340,7 @@ module CPU_Controller(
           end
           // loads, stores, jumps
           LD_ST_J_OP: begin 
-            case (opcode_ext)
+            case (opcode_ext) begin 
               LOAD_EXT: begin 
                 // select memory read data as reg input, and enable reg write
                 write_back_sel = REG_SRC_MEM;

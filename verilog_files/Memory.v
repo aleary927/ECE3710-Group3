@@ -3,7 +3,7 @@
 *
 * Dual port, syncronous read and write.
 */
-module Memory #(parameter DATA_WIDTH = 16, SIZE = 1024)
+module Memory #(parameter DATA_WIDTH = 16, SIZE = 1024, MEM_FILE)
 (
   input clk,
   input wr_en1, wr_en2,
@@ -18,12 +18,12 @@ module Memory #(parameter DATA_WIDTH = 16, SIZE = 1024)
   // load memory
   integer i;
   initial begin 
-    // $readmemh("../mem_files/test.dat", ram);
+    $readmemb(MEM_FILE, ram);
 
     // for testing only
-    for (i = 0; i < SIZE; i = i + 1) begin 
-      ram[i] = 0;
-    end
+    // for (i = 0; i < SIZE; i = i + 1) begin 
+    //   ram[i] = 0;
+    // end
   end
 
   // port 1

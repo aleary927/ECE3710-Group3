@@ -19,6 +19,7 @@ module CPU_Controller(
   output reg cmp_f_en, of_f_en, z_f_en, 
   output reg [1:0] pc_addr_mode, 
   output reg [2:0] write_back_sel, 
+  output reg [1:0] sign_ext_mode,
 
   // to memory
   output reg mem_wr_en 
@@ -52,6 +53,11 @@ module CPU_Controller(
   localparam PC_INCREMENT = 2'b00; 
   localparam PC_OFFSET    = 2'b01;
   localparam PC_ABSOLUTE  = 2'b10;
+
+  // ----- sign extension modes -----
+  localparam  SIGN_EXTEND       = 2'b00;    // 2's complement sign extend
+  localparam  ZERO_EXTEND       = 2'b01;       // pad with 0s in MSBs
+  localparam  ALIGN_HIGH        = 2'b10;    // align on the high order bits
 
   // ----- Opcodes -----
 
@@ -280,6 +286,7 @@ module CPU_Controller(
 
     pc_addr_mode = PC_INCREMENT;     // incrmeent pc by default
     write_back_sel = REG_SRC_ALU;   // alu result by default
+    sign_ext_mode = SIGN_EXTEND;    // regular sign extension by default
 
     // default is use Rsrc as mem address
     next_instr = 0; 
@@ -371,14 +378,17 @@ module CPU_Controller(
           ANDI_OP: begin 
             z_f_en = 1;     // enable zero flag ??
             reg_wr_en = 1;  // write to reg
+            sign_ext_mode = ZERO_EXTEND;
           end
           ORI_OP: begin 
             z_f_en = 1;  // enable zero flag ??
             reg_wr_en = 1;  // write to reg
+            sign_ext_mode = ZERO_EXTEND;
           end
           XORI_OP: begin 
             z_f_en = 1;  // enable zero flag ??
             reg_wr_en = 1;  // write to reg
+            sign_ext_mode = ZERO_EXTEND;
           end
           ADDI_OP: begin 
             z_f_en = 1;  // enable zero flag ??
@@ -404,7 +414,7 @@ module CPU_Controller(
           end
           MOVI_OP: begin 
             reg_wr_en = 1;
-            // TODO this needs to be zero extended immediate
+            sign_ext_mode = ZERO_EXTEND;
             write_back_sel = REG_SRC_IMM;   // select reg read as write back source
           end
           MULI_OP: begin 
@@ -412,8 +422,8 @@ module CPU_Controller(
             z_f_en = 1;     // enable zero flag ??
           end
           LUI_OP: begin
-            // TODO this needs to be load and 8 bit shift left
-
+            reg_wr_en = 1; 
+            sign_ext_mode = ALIGN_HIGH;   // align immediate on MSB
           end
         endcase
       end

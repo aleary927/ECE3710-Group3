@@ -19,7 +19,7 @@ module PC_ALU #(parameter PC_WIDTH = 21)
   localparam ABSOLUTE   = 2'b10;
 
   // increment current pc
-  assign pc_plus_one = c_pc + 1;
+  assign pc_plus_one = c_pc + 1'b1;
 
   // calc new pc
   always @(*) begin 

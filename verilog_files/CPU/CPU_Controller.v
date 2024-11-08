@@ -343,6 +343,7 @@ module CPU_Controller(
                 reg_wr_en = 1;  // enable reg write
                 z_f_en = 1;     // enable zero flag for MUL ??
               end
+              default: ;  // to supress warning
             endcase
           end
           // loads, stores, jumps
@@ -369,6 +370,7 @@ module CPU_Controller(
                 // comparison not success: increment 
                 pc_addr_mode = cmp_result ? PC_ABSOLUTE : PC_INCREMENT; 
               end
+              default: ;  // to supress warning
             endcase
           end
           // shifts 
@@ -424,9 +426,12 @@ module CPU_Controller(
           LUI_OP: begin
             reg_wr_en = 1; 
             sign_ext_mode = ALIGN_HIGH;   // align immediate on MSB
+            write_back_sel = REG_SRC_IMM;
           end
+          default: ; // to supress warning
         endcase
       end
+      default: ;    // to supress warning
     endcase
   end
 

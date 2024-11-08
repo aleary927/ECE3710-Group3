@@ -46,7 +46,7 @@ module DataPath(
   wire [15:0] psr;            // processor status
 
   // signed extended immediate 
-  wire [15:0] immediate; 
+  wire [7:0] immediate; 
   wire [15:0] immediate_ext;
 
   // wires for convenience in accessing Rdest, Rsrc (parts of instruction reg)

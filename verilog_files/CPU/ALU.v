@@ -29,7 +29,7 @@ localparam ASH = 4'b0111;
 localparam MUL = 4'b1000;
 
 // if b is negative, shift amount is 2's complement inverse of b
-assign inv_b = ~b + 1;
+assign inv_b = ~b + 1'b1;
 assign shift_amount = b[DATA_WIDTH - 1] ? inv_b[$clog2(DATA_WIDTH) - 1:0] : b[$clog2(DATA_WIDTH) - 1:0];
 
 always @(*) begin

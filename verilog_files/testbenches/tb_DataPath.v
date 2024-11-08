@@ -15,6 +15,7 @@ module tb_DataPath();
   reg pc_en, instr_en;      // wr_en for pc, instr regs
   reg [15:0] mem_rd_data;      // data to memory
   reg [1:0] pc_addr_mode;     // mode to use to calc next PC
+  reg [1:0] sign_ext_mode;
   
   wire [15:0] mem_wr_data;     // data to memory
   wire [15:0] mem_addr;       // addr to memory
@@ -57,6 +58,7 @@ module tb_DataPath();
     .next_instr(next_instr),
     .instr_en(instr_en), 
     .pc_addr_mode(pc_addr_mode),
+    .sign_ext_mode(sign_ext_mode),
     .cmp_f_en(cmp_f_en), 
     .of_f_en(of_f_en), 
     .z_f_en(z_f_en),
@@ -89,6 +91,7 @@ module tb_DataPath();
     mem_rd_data = 0;
     pc_addr_mode = 0;
     reset_n = 0;
+    sign_ext_mode = 0;
   end
 
   initial begin
@@ -114,11 +117,11 @@ module tb_DataPath();
     // test sign extension
     mem_rd_data = 16'h00F0;  // load negative 
     #10; 
-    if (datapath.immediate != 16'hFFF0)
+    if (datapath.immediate_ext != 16'hFFF0)
       $display("error: sign extension for immediate did not work");
     mem_rd_data = 16'h0055; // load positive 
     #10; 
-    if (datapath.immediate != 16'h0055) 
+    if (datapath.immediate_ext != 16'h0055) 
       $display("error: should be no sign extension for immediate on positive value");
     instr_en = 0;
 

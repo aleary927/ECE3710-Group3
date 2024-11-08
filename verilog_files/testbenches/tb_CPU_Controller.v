@@ -383,7 +383,172 @@ module tb_CPU_Controller;
     if (reg_wr_en != 1 || z_f_en != 1)
 	 $display("LUI_OP operation failed.");
 	 
-
+	 
+	 
+	 
+	 
+	 // testing for determining ALU function and source **
+    // Testing RS_RD_OP (expected alu_src = 0)
+    opcode = RS_RD_OP;
+    #10;
+    $display("Testing RS_RD_OP source...");
+	 
+	 if (alu_src != 0)
+	 $display("RS_RD_OP source failed.");
+	 
+	 // testing RS_RD_OP with AND_EXT (expected alu_sel = AND)
+	 opcode_ext = AND_EXT;
+	 #10;
+    $display("Testing AND_EXT function...");
+	 
+    if (alu_sel != AND)
+	 $display("AND_EXT function failed.");
+	 
+	 
+	 // testing RS_RD_OP with OR_EXT (expected alu_sel = OR)
+	 opcode_ext = OR_EXT;
+    #10;
+    $display("Testing OR_EXT function...");
+	 
+    if (alu_sel != OR)
+	 $display("OR_EXT function failed.");
+	 	 
+	 // testing RS_RD_OP with XOR_EXT (expected alu_sel = XOR)
+	 opcode_ext = XOR_EXT;
+    #10;
+    $display("Testing XOR_EXT function...");
+	 
+    if (alu_sel != XOR)
+	 $display("XOR_EXT function failed.");
+	 	 
+	 // testing RS_RD_OP with ADD_EXT (expected alu_sel = ADD)
+	 opcode_ext = ADD_EXT;
+    #10;
+    $display("Testing ADD_EXT function...");
+	 
+    if (alu_sel != ADD)
+	 $display("ADD_EXT function failed.");
+	 	 
+	 // testing RS_RD_OP with SUB_EXT (expected alu_sel = SUB)
+	 opcode_ext = SUB_EXT;
+    #10;
+    $display("Testing SUB_EXT function...");
+	 
+    if (alu_sel != SUB)
+	 $display("SUB_EXT function failed.");
+	 
+	 	 	 
+	 // testing RS_RD_OP with CMP_EXT (expected alu_sel = SUB)
+	 opcode_ext = CMP_EXT;
+    #10;
+    $display("Testing CMP_EXT function...");
+	 
+    if (alu_sel != SUB)
+	 $display("CMP_EXT function failed.");
+	 	 	 
+	 // testing RS_RD_OP with MUL_EXT (expected alu_sel = MUL)
+	 opcode_ext = MUL_EXT;
+    #10;
+    $display("Testing MUL_EXT function...");
+	 
+    if (alu_sel != MUL)
+	 $display("MUL_EXT function failed.");
+	 
+	 
+	 
+	 	//** Shifts
+	 // testing SH_OP with LSHI_EXT (alu_src = 1, alu_sel = LSH)
+	 opcode = SH_OP
+	 opcode_ext = LSHI_EXT;
+    #10;
+    $display("Testing LSHI_EXT function...");
+	 
+    if (alu_src != 1 || alu_sel != LSH)
+	 $display("LSHI_EXT function failed.");
+	 
+	 // testing SH_OP with ASHUI_EXT (alu_src = 1, alu_sel = ASH)
+	 opcode_ext = ASHUI_EXT;
+    #10;
+    $display("Testing ASHUI_EXT function...");
+	 
+    if (alu_src != 1 || alu_sel != ASH)
+	 $display("ASHUI_EXT function failed.");
+	 
+	 	 
+	 // testing SH_OP with LSH_EXT (alu_src = 0, alu_sel = LSH)
+	 opcode_ext = LSH_EXT;
+    #10;
+    $display("Testing LSH_EXT function...");
+	 
+    if (alu_src != 0 || alu_sel != LSH)
+	 $display("LSH_EXT function failed.");
+	 	 
+	 // testing SH_OP with ASHU_EXT (alu_src = 0, alu_sel = ASH)
+	 opcode_ext = ASHU_EXT;
+    #10;
+    $display("Testing ASHU_EXT function...");
+	 
+    if (alu_src != 0 || alu_sel != ASH)
+	 $display("ASHU_EXT function failed.");
+	 
+	 // testing ANDI_OP (expect alu_src = 1, alu_sel = AND)
+	 opcode = ANDI_OP
+    #10;
+    $display("Testing ANDI_OP function...");
+	 
+    if (alu_src != 1 || alu_sel != AND)
+	 $display("ANDI_OP function failed.");
+	 
+	 	 
+	 // testing ORI_OP (expect alu_src = 1, alu_sel = ORI)
+	 opcode = ORI_OP
+    #10;
+    $display("Testing ORI_OP function...");
+	 
+    if (alu_src != 1 || alu_sel != ORI)
+	 $display("ORI_OP function failed.");
+	 	 
+	 // testing XORI_OP (expect alu_src = 1, alu_sel = XORI)
+	 opcode = XORI_OP
+    #10;
+    $display("Testing XORI_OP function...");
+	 
+    if (alu_src != 1 || alu_sel != XORI)
+	 $display("XORI_OP function failed.");
+	 	 
+	 // testing ADDI_OP (expect alu_src = 1, alu_sel = ADD)
+	 opcode = ADDI_OP
+    #10;
+    $display("Testing ADDI_OP function...");
+	 
+    if (alu_src != 1 || alu_sel != ADD)
+	 $display("ADDI_OP function failed.");
+	 
+	 	 	 
+	 // testing SUBI_OP (expect alu_src = 1, alu_sel = SUB)
+	 opcode = SUBI_OP
+    #10;
+    $display("Testing SUBI_OP function...");
+	 
+    if (alu_src != 1 || alu_sel != SUB)
+	 $display("SUBI_OP function failed.");
+	 	 	 
+	 // testing CMPI_OP (expect alu_src = 1, alu_sel = SUB)
+	 opcode = CMPI_OP
+    #10;
+    $display("Testing CMPI_OP function...");
+	 
+    if (alu_src != 1 || alu_sel != SUB)
+	 $display("CMPI_OP function failed.");
+	 	 	 
+	 // testing MULI_OP (expect alu_src = 1, alu_sel = MUL)
+	 opcode = MULI_OP
+    #10;
+    $display("Testing MULI_OP function...");
+	 
+    if (alu_src != 1 || alu_sel != MUL)
+	 $display("MULI_OP function failed.");
+	 
 	 
     // Testing reset
     reset_n = 0;

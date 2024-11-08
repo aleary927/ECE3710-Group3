@@ -175,7 +175,7 @@ module DataPath(
    );
 
    // perform sign extension 
-   SignExtender sign_extend (
+   ImmExtender sign_extend (
       .imm(immediate), 
       .mode(sign_ext_mode), 
       .ext(immediate_ext)

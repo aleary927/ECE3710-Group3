@@ -18,6 +18,7 @@ module DataPath(
     input cmp_f_en, of_f_en, z_f_en,  // Processor status register flags enables
     input [1:0] pc_addr_mode,   // PC ALU addressing mode select
     input [2:0] write_back_sel,   // Select for write-back data to reg file
+    input [1:0] sign_ext_mode,
     // mem signals
     input [15:0] mem_rd_data,       // data from memory
     output [15:0] mem_wr_data,      // data to memory
@@ -32,7 +33,7 @@ module DataPath(
   // ****************************
 
   // RF and ALU connectors
-  wire [15:0] reg_data1, reg_data2;      // Data read from register file
+  wire [15:0] Rdest_data, Rsrc_data;      // Data read from register file
   wire [15:0] alu_input_b;               // ALU second operand
   wire [15:0] alu_result;                // ALU result
   wire [15:0] write_back_data;            // Data selected for writing back to the register file
@@ -46,6 +47,7 @@ module DataPath(
 
   // signed extended immediate 
   wire [15:0] immediate; 
+  wire [15:0] immediate_ext;
 
   // wires for convenience in accessing Rdest, Rsrc (parts of instruction reg)
   wire [3:0] Rdest, Rsrc;
@@ -57,8 +59,8 @@ module DataPath(
   // CONNECTOR LOGIC
   // ********************** 
 
-  // write data always comes from Rdest (reg_data1)
-  assign mem_wr_data = reg_data1;
+  // write data always comes from Rdest (Rdest_data)
+  assign mem_wr_data = Rdest_data;
 
   // break instruction reg down into parts for controller
   assign opcode = current_instr[15:12];
@@ -68,8 +70,8 @@ module DataPath(
   assign Rdest = current_instr[11:8];
   assign Rsrc = current_instr[3:0];
 
-  // Sign extension for the immediate value 
-  assign immediate = {{8{current_instr[7]}},current_instr[7:0]};
+  // for connection to sign extender
+  assign immediate = current_instr[7:0];
 
   // *********************
   // MUXES 
@@ -81,23 +83,23 @@ module DataPath(
     .sel(write_back_sel), 
     .a(alu_result), 
     .b(mem_rd_data), 
-    .c(reg_data2),
-    .d(immediate),
+    .c(Rsrc_data),
+    .d(immediate_ext),
     .e(pc_plus_one),    // will only ever need to write pc + 1 to reg
     .out(write_back_data));
 
   // ALU Operand B Mux: Select between immediate and register value
   Mux2 #(16) alu_srcb_mux (
     .sel(alu_src), 
-    .a(reg_data2), 
-    .b(immediate), 
+    .a(Rsrc_data), 
+    .b(immediate_ext), 
     .out(alu_input_b));
 
-  // Memory address output can be either the value in Rsrc (reg_data2) or 
+  // Memory address output can be either the value in Rsrc (Rsrc_data) or 
   // the PC
   Mux2 #(16) mem_addr_mux (
     .sel(next_instr), 
-    .a(reg_data2), 
+    .a(Rsrc_data), 
     .b(pc_current), 
     .out(mem_addr));
 
@@ -145,13 +147,13 @@ module DataPath(
         .wr_data(write_back_data), // Use the selected write-back data
         .addr1(Rdest),  // Source register 1
         .addr2(Rsrc),   // Source register 2
-        .rd_data1(reg_data1),
-        .rd_data2(reg_data2)
+        .rd_data1(Rdest_data),
+        .rd_data2(Rsrc_data)
     );
 
     // Instantiate the ALU 
     ALU #(16) alu (
-        .a(reg_data1),
+        .a(Rdest_data),
         .b(alu_input_b),
         .select(alu_sel), 
         .out(alu_result),
@@ -165,11 +167,18 @@ module DataPath(
    // Instantiate the PC_ALU for calculating the next program counter
    PC_ALU #(16) pc_alu (
         .c_pc(pc_current),      // current program counter
-        .offset(immediate),     // for branches
-        .target(reg_data2),     // for jumps
+        .offset(immediate_ext),     // for branches
+        .target(Rsrc_data),     // for jumps
         .addr_mode(pc_addr_mode), // select addressing mode
         .pc_plus_one(pc_plus_one),  // current pc + 1
         .n_pc(next_pc)          // next program counter
+   );
+
+   // perform sign extension 
+   SignExtender sign_extend (
+      .imm(immediate), 
+      .mode(sign_ext_mode), 
+      .ext(immediate_ext)
    );
 
    // Comparator to use a mnemonic (encoded in Rdest) and the comparison 

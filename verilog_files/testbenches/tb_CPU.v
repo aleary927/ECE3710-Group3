@@ -7,6 +7,23 @@ module tb_CPU();
   localparam TIME_INSTR = T * 2;
   // time for one instruction to execute and write data to RF from reset
   localparam TIME_INSTR_FROM_RESET = T * 3;
+  
+  // comparison mnemonics
+  localparam EQ = 4'b0000;
+  localparam NE = 4'b0001;
+  localparam GE = 4'b1101;
+  localparam CS = 4'b0010; 
+  localparam CC = 4'b0011;
+  localparam HI = 4'b0100; 
+  localparam LS = 4'b0101;
+  localparam LO = 4'b1010;
+  localparam HS = 4'b1011;
+  localparam GT = 4'b0110;
+  localparam LE = 4'b0111; 
+  localparam FS = 4'b1000;
+  localparam FC = 4'b1001;
+  localparam LT = 4'b1100;
+  localparam UC = 4'b1110;
 
   // ----- Opcodes -----
 
@@ -60,6 +77,7 @@ module tb_CPU();
   localparam TBITI_EXT        = 4'b1110;
 
   `define accessRF(addr) cpu.datapath.register_file.registers[addr]
+  `define accessPC cpu.datapath.pc_current
 
   `define assertEqual(signal, value) \
           if (signal !== value ) begin \
@@ -87,6 +105,9 @@ module tb_CPU();
   wire [15:0] mem_wr_data; 
 
   integer result;
+
+  reg [15:0] pc_before;
+  reg [15:0] sub_result;
 
   CPU cpu (
     .clk(clk), 
@@ -140,6 +161,22 @@ module tb_CPU();
       mem_rd_data = {ANDI_OP, Rdest, imm};
       #TIME_INSTR_FROM_RESET; 
       `assertEqual(`accessRF(Rdest), result)
+    end
+  endtask
+
+  task INSTR_CMP; 
+    input [3:0] Rsrc, Rdest; 
+
+    begin 
+      DO_RESET; 
+
+      sub_result = `accessRF(Rdest) - `accessRF(Rsrc);
+
+      mem_rd_data = {RS_RD_OP, Rdest, CMP_EXT, Rsrc};
+
+      #(TIME_INSTR_FROM_RESET);
+      // check that reg wasn't updated
+      `assertNotEqual(`accessRF(Rdest), sub_result)
     end
   endtask
 
@@ -228,33 +265,72 @@ module tb_CPU();
   task INSTR_BCOND; 
     input [3:0] cond; 
     input [7:0] disp; 
+    input expected_branch_result;
+
+    reg [15:0] disp_result;
     begin 
-      DO_RESET;
+      // no reset here because alu flags needed, must 
+      // enter this task during a fetch state
+      
+      pc_before = `accessPC;
+      disp_result = pc_before + disp;
 
       mem_rd_data = {BCOND_OP, cond, disp};
+      #(TIME_INSTR);
+      // check if didn't get next instruction
+      if (expected_branch_result) begin
+        `assertEqual(`accessPC, disp_result)
+      end
+      // check if did get next instruction
+      else begin
+        `assertEqual(`accessPC, (pc_before + 1))
+      end
     end
   endtask 
 
   task INSTR_JCOND; 
     input [3:0] cond;
     input [3:0] Rtarget;
-    begin 
-      DO_RESET;
+    input expected_jump_result;
 
-      mem_rd_data = {LD_ST_J_OP, cond, JAL_EXT, Rtarget};
+    begin 
+      // no reset here because alu flags needed, must 
+      // enter this task during a fetch state
+      
+      pc_before = `accessPC;
+
+      mem_rd_data = {LD_ST_J_OP, cond, JCOND_EXT, Rtarget};
+
+      #(TIME_INSTR);
+      // verify 
+      // check that pc matches Rtarget
+      if (expected_jump_result) begin 
+        `assertEqual(`accessPC, `accessRF(Rtarget))
+      end
+      // check that pc matches previous pc + 1
+      else begin
+        `assertEqual(`accessPC, (pc_before + 1))
+      end
     end
   endtask 
 
   task INSTR_JAL; 
     input [3:0] Rlink, Rtarget; 
+
+    reg [15:0] pc_before;
     begin 
       DO_RESET;
 
+      pc_before = `accessPC;
+
       mem_rd_data = {LD_ST_J_OP, Rlink, JAL_EXT, Rtarget};
 
-      // verify previous pc was saved 
-      // verify fetching from new pc
+      #(TIME_INSTR_FROM_RESET);
 
+      // verify previous pc + 1 was saved in Rlink
+      `assertEqual(`accessRF(Rlink), (pc_before + 1))
+      // verify fetching new instr from value in Rtarget
+      `assertEqual(`accessPC, `accessRF(Rtarget))
     end
   endtask
 
@@ -318,6 +394,25 @@ module tb_CPU();
     `loadRF(12, 16'h6789)   // Rsrc 
     `loadRF(13, 16'h3F8E)   // Raddr 
     INSTR_STOR(12, 13);
+
+    `dispTestHeader("CMP test")
+    `loadRF(3, 16'd500)    // Rsrc
+    `loadRF(4, 16'd750)    // Rdest
+    INSTR_CMP(3, 4);
+    `dispTestHeader("Bcond test (success)")
+    INSTR_BCOND(LE, 8'd100, 1);
+    `dispTestHeader("Bcond test (no success)")
+    INSTR_BCOND(EQ, 8'd30, 0);
+    `dispTestHeader("Jcond test (success)")
+    `loadRF(10, 16'd20000)
+    INSTR_JCOND(LS, 10, 1);
+    `loadRF(2, 16'd1034)
+    `dispTestHeader("Jcond test (no success)")
+    INSTR_JCOND(GT, 2, 0);
+
+    `dispTestHeader("JAL test") 
+    `loadRF(7, 16'h78FA)
+    INSTR_JAL(14, 7);
 
     $display("Testbench complete");
   end

@@ -458,7 +458,7 @@ module tb_CPU_Controller;
 	 
 	 	//** Shifts
 	 // testing SH_OP with LSHI_EXT (alu_src = 1, alu_sel = LSH)
-	 opcode = SH_OP
+	 opcode = SH_OP;
 	 opcode_ext = LSHI_EXT;
     #10;
     $display("Testing LSHI_EXT function...");
@@ -492,7 +492,7 @@ module tb_CPU_Controller;
 	 $display("ASHU_EXT function failed.");
 	 
 	 // testing ANDI_OP (expect alu_src = 1, alu_sel = AND)
-	 opcode = ANDI_OP
+	 opcode = ANDI_OP;
     #10;
     $display("Testing ANDI_OP function...");
 	 
@@ -501,23 +501,23 @@ module tb_CPU_Controller;
 	 
 	 	 
 	 // testing ORI_OP (expect alu_src = 1, alu_sel = ORI)
-	 opcode = ORI_OP
+	 opcode = ORI_OP;
     #10;
     $display("Testing ORI_OP function...");
 	 
-    if (alu_src != 1 || alu_sel != ORI)
+    if (alu_src != 1 || alu_sel != ORI_OP)
 	 $display("ORI_OP function failed.");
 	 	 
 	 // testing XORI_OP (expect alu_src = 1, alu_sel = XORI)
-	 opcode = XORI_OP
+	 opcode = XORI_OP;
     #10;
     $display("Testing XORI_OP function...");
 	 
-    if (alu_src != 1 || alu_sel != XORI)
+    if (alu_src != 1 || alu_sel != XORI_OP)
 	 $display("XORI_OP function failed.");
 	 	 
 	 // testing ADDI_OP (expect alu_src = 1, alu_sel = ADD)
-	 opcode = ADDI_OP
+	 opcode = ADDI_OP;
     #10;
     $display("Testing ADDI_OP function...");
 	 
@@ -526,7 +526,7 @@ module tb_CPU_Controller;
 	 
 	 	 	 
 	 // testing SUBI_OP (expect alu_src = 1, alu_sel = SUB)
-	 opcode = SUBI_OP
+	 opcode = SUBI_OP;
     #10;
     $display("Testing SUBI_OP function...");
 	 
@@ -534,7 +534,7 @@ module tb_CPU_Controller;
 	 $display("SUBI_OP function failed.");
 	 	 	 
 	 // testing CMPI_OP (expect alu_src = 1, alu_sel = SUB)
-	 opcode = CMPI_OP
+	 opcode = CMPI_OP;
     #10;
     $display("Testing CMPI_OP function...");
 	 
@@ -542,7 +542,7 @@ module tb_CPU_Controller;
 	 $display("CMPI_OP function failed.");
 	 	 	 
 	 // testing MULI_OP (expect alu_src = 1, alu_sel = MUL)
-	 opcode = MULI_OP
+	 opcode = MULI_OP;
     #10;
     $display("Testing MULI_OP function...");
 	 

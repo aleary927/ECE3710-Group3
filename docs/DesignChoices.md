@@ -112,7 +112,7 @@ controller leaves this state.
 ### Execute state 
 During this state, the control signals for the data path are set, 
 and the result from the instruction will be stored in the 
-register file(if applicable)
+register file (if applicable)
 on the rising edge of the clock as the controller leaves this state.
 Instructions such as JAL and BCOND are able to be completed in 
 one state due to the added parallelism of the data path.

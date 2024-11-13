@@ -107,7 +107,8 @@ The stages of this FSM are simply fetch and execute.
 During this state, the PC is selected as the memory address, and the 
 instruction register write enable is set high. 
 The next instruction will be latched on the rising edge as the 
-controller leaves this state. 
+controller leaves this state. This ensures that each instruction is readily
+available at the start of each execution state. 
 
 ### Execute state 
 During this state, the control signals for the data path are set, 

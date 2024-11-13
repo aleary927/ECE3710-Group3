@@ -505,7 +505,7 @@ module tb_CPU_Controller;
     #10;
     $display("Testing ORI_OP function...");
 	 
-    if (alu_src != 1 || alu_sel != ORI_OP)
+    if (alu_src != 1 || alu_sel != OR)
 	 $display("ORI_OP function failed.");
 	 	 
 	 // testing XORI_OP (expect alu_src = 1, alu_sel = XORI)
@@ -513,7 +513,7 @@ module tb_CPU_Controller;
     #10;
     $display("Testing XORI_OP function...");
 	 
-    if (alu_src != 1 || alu_sel != XORI_OP)
+    if (alu_src != 1 || alu_sel != XOR)
 	 $display("XORI_OP function failed.");
 	 	 
 	 // testing ADDI_OP (expect alu_src = 1, alu_sel = ADD)

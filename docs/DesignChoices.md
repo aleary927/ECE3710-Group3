@@ -1,6 +1,5 @@
-# Design Choices 
-This document contains information on the design choices made within each module 
-of the design.
+## Introduction
+This document provides an in-depth overview of the design choices, implementation details, and considerations for developing a functional CR16-based processor. The primary objective of this project up to this point was to design, implement, and test a working processor capable of executing a defined set of baseline instructions, including arithmetic, logical, load/store, and branch operations, as well as jump and link instructions. By integrating the ALU, register file, datapath, memory interface, instruction decoding, and control FSM, the CPU is now able to process and execute instructions on the FPGA.
 
 ## Memory 
 The memory is write on positive edge, read on negative edge.
@@ -163,3 +162,13 @@ and the next instruction fetch begins.
 The JAL instruction is able to be completed during this cycle 
 because the PC plus one signal can be stored in the register 
 file while the next PC signal is latched into the PC register.
+
+## Conclusion 
+In conclusion, key design choices, like the modular structure of the datapath and the two-stage control FSM, allow for efficient execution by leveraging parallelism and reducing complexity in our design. Looking forward, the planned augmentations to integrate I/O capabilities, such as memory-mapped addresses for a piezo drum board and VGA display, will allow the CPU to interact with our planned game peripherals. These augmentations are designed to build upon the current framework without significant changes to the datapath or control logic, ensuring an efficient path for further development.
+
+Contributions: 
+Hayoung - 
+Lee - 
+Aidan - 
+Trae contributed by writing the datapath, register file, and original state logic of FSM. 
+

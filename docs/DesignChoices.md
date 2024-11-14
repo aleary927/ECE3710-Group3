@@ -181,7 +181,7 @@ without significant changes to the datapath or control logic, ensuring an effici
 Contributions 
 Hayoung: 
 
-Lee: 
+Lee: contributed by writing testbench
 
 Aidan: 
 

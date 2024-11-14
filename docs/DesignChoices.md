@@ -166,9 +166,12 @@ file while the next PC signal is latched into the PC register.
 ## Conclusion 
 In conclusion, key design choices, like the modular structure of the datapath and the two-stage control FSM, allow for efficient execution by leveraging parallelism and reducing complexity in our design. Looking forward, the planned augmentations to integrate I/O capabilities, such as memory-mapped addresses for a piezo drum board and VGA display, will allow the CPU to interact with our planned game peripherals. These augmentations are designed to build upon the current framework without significant changes to the datapath or control logic, ensuring an efficient path for further development.
 
-Contributions: 
-Hayoung - 
-Lee - 
-Aidan - 
-Trae contributed by writing the datapath, register file, and original state logic of FSM. 
+Contributions 
+Hayoung: 
+
+Lee: 
+
+Aidan: 
+
+Trae: contributed by writing the datapath, register file, and original state logic of FSM. 
 

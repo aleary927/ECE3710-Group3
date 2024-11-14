@@ -179,7 +179,7 @@ These augmentations are designed to build upon the current framework
 without significant changes to the datapath or control logic, ensuring an efficient path for further development.
 
 Contributions 
-Hayoung: 
+Hayoung: contributed by writing ALU and assembly codes
 
 Lee: contributed by writing testbench
 

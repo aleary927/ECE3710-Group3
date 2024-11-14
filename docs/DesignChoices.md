@@ -93,7 +93,7 @@ PSR into the register file should it be necessary for an instruction.
 
 ### PC and Instruction registers
 The PC and Instruction registers are implemented using a general purpose 
-register module, inspired by the Mini-MIPS design. 
+16-bit register module, inspired by the Mini-MIPS design. 
 The reason for this is because these registers don't have any special 
 attributes like the PSR does where individual bits need to be written 
 independently.

@@ -18,7 +18,7 @@ module Memory #(parameter DATA_WIDTH = 16, SIZE = 1024, MEM_FILE)
   // load memory
   integer i;
   initial begin 
-    $readmemb(MEM_FILE, ram);
+    $readmemh(MEM_FILE, ram);
 
     // for testing only
     // for (i = 0; i < SIZE; i = i + 1) begin 
@@ -30,11 +30,15 @@ module Memory #(parameter DATA_WIDTH = 16, SIZE = 1024, MEM_FILE)
   always @(posedge clk) begin 
     if (wr_en1) begin
       ram[addr1] <= wr_data1;
-      rd_data1 <= wr_data1;
+      // rd_data1 <= wr_data1;
     end
-    else begin
-      rd_data1 <= ram[addr1]; 
-    end
+    // else begin
+    //   rd_data1 <= ram[addr1]; 
+    // end
+  end
+
+  always @(negedge clk) begin 
+    rd_data1 <= ram[addr1];
   end
 
   // port 2

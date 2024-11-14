@@ -19,6 +19,9 @@ module DataPath(
     input [1:0] pc_addr_mode,   // PC ALU addressing mode select
     input [2:0] write_back_sel,   // Select for write-back data to reg file
     input [1:0] sign_ext_mode,
+    // timer 
+    input timer_pause_en, 
+    input timer_reset,
     // mem signals
     input [15:0] mem_rd_data,       // data from memory
     output [15:0] mem_wr_data,      // data to memory
@@ -37,6 +40,9 @@ module DataPath(
   wire [15:0] alu_input_b;               // ALU second operand
   wire [15:0] alu_result;                // ALU result
   wire [15:0] write_back_data;            // Data selected for writing back to the register file
+  
+  // timer wires 
+  wire [15:0] ms_count; 
  
   // connector wires for registers
   wire [15:0] pc_current;               // current program counter
@@ -79,13 +85,14 @@ module DataPath(
 
   // Write-Back Mux: Select data to write back to register file, (alu result, 
   // memory read data, register read data, or immediate)
-  Mux5 #(16) reg_wr_src (
+  Mux6 #(16) reg_wr_src (
     .sel(write_back_sel), 
     .a(alu_result), 
     .b(mem_rd_data), 
     .c(Rsrc_data),
     .d(immediate_ext),
     .e(pc_plus_one),    // will only ever need to write pc + 1 to reg
+    .f(ms_count),
     .out(write_back_data));
 
   // ALU Operand B Mux: Select between immediate and register value
@@ -172,6 +179,15 @@ module DataPath(
         .addr_mode(pc_addr_mode), // select addressing mode
         .pc_plus_one(pc_plus_one),  // current pc + 1
         .n_pc(next_pc)          // next program counter
+   );
+
+   MS_counter ms_counter ( 
+     .clk(clk), 
+     .reset_n(reset_n), 
+     .user_reset(timer_reset), 
+     .config_en(timer_pause_en),
+     .pause(immediate_ext[0]),      // use LSB of immediate for 
+     .count(ms_count)
    );
 
    // perform sign extension 

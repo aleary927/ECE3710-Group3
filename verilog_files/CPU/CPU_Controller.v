@@ -20,6 +20,8 @@ module CPU_Controller(
   output reg [1:0] pc_addr_mode, 
   output reg [2:0] write_back_sel, 
   output reg [1:0] sign_ext_mode,
+  output reg timer_pause_en, 
+  output reg timer_reset,
 
   // to memory
   output reg mem_wr_en 
@@ -42,12 +44,12 @@ module CPU_Controller(
   localparam MUL = 4'b1000;
 
   // ----- reg write selects -----
-
   localparam REG_SRC_ALU  = 3'h0;
   localparam REG_SRC_MEM  = 3'h1;
   localparam REG_SRC_REG  = 3'h2; 
   localparam REG_SRC_IMM  = 3'h3;
   localparam REG_SRC_PC   = 3'h4;
+  localparam REG_SRC_MS   = 3'h5;
 
   // ----- PC address modes -----
   localparam PC_INCREMENT = 2'b00; 
@@ -67,11 +69,11 @@ module CPU_Controller(
   localparam XORI_OP          = 4'b0011;
   localparam LD_ST_J_OP       = 4'b0100;    // LOAD, STOR, Jcond, JAL
   localparam ADDI_OP          = 4'b0101;
-  // localparam ADDUI_OP         = 4'b0110;    // (not implemented)
-  // localparam ADDCI_OP         = 4'b0111;    // (not implemented)
+  localparam MSCP_OP          = 4'b0110;    // this is ADDUI in regular CR16
+  localparam MSCR_OP          = 4'b0111;    // this is ADDCI in regular CR16
   localparam SH_OP            = 4'b1000;    // shift instructions (this all go by opcode extensions)
   localparam SUBI_OP          = 4'b1001;
-  // localparam SUBCI_OP         = 4'b1010;    // not implemented
+  localparam MSCG_OP          = 4'b1010;    // this is SUBCI in regular CR16
   localparam CMPI_OP          = 4'b1011;
   localparam BCOND_OP         = 4'b1100;
   localparam MOVI_OP          = 4'b1101;
@@ -284,6 +286,10 @@ module CPU_Controller(
     of_f_en = 0; 
     z_f_en = 0;
 
+    // timer signals disabled by default
+    timer_reset = 0; 
+    timer_pause_en = 0; 
+
     pc_addr_mode = PC_INCREMENT;     // incrmeent pc by default
     write_back_sel = REG_SRC_ALU;   // alu result by default
     sign_ext_mode = SIGN_EXTEND;    // regular sign extension by default
@@ -372,6 +378,19 @@ module CPU_Controller(
               end
               default: ;  // to supress warning
             endcase
+          end
+          // ms count pause 
+          MSCP_OP: begin 
+            timer_pause_en = 1;
+          end
+          // ms count reset 
+          MSCR_OP: begin 
+            timer_reset = 1;
+          end
+          // ms count get
+          MSCG_OP: begin 
+            reg_wr_en = 1;
+            write_back_sel = REG_SRC_MS;
           end
           // shifts 
           SH_OP: begin 

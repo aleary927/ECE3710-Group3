@@ -27,6 +27,8 @@ module CPU(
   wire [1:0] pc_addr_mode;
   wire [2:0] write_back_sel; 
   wire [1:0] sign_ext_mode;
+  wire timer_pause_en; 
+  wire timer_reset;
 
 
   // MODULES 
@@ -51,6 +53,8 @@ module CPU(
     .write_back_sel(write_back_sel), 
     .sign_ext_mode(sign_ext_mode),
     .cmp_result(cmp_result),
+    .timer_pause_en(timer_pause_en), 
+    .timer_reset(timer_reset),
 
     .mem_wr_en(mem_wr_en) 
   );
@@ -74,6 +78,8 @@ module CPU(
     .cmp_result(cmp_result), 
     .opcode(opcode), 
     .opcode_ext(opcode_ext), 
+    .timer_reset(timer_reset), 
+    .timer_pause_en(timer_pause_en),
 
     .mem_rd_data(mem_rd_data), 
     .mem_wr_data(mem_wr_data), 

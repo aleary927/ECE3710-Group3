@@ -30,11 +30,7 @@ module Memory #(parameter DATA_WIDTH = 16, SIZE = 1024, MEM_FILE)
   always @(posedge clk) begin 
     if (wr_en1) begin
       ram[addr1] <= wr_data1;
-      // rd_data1 <= wr_data1;
     end
-    // else begin
-    //   rd_data1 <= ram[addr1]; 
-    // end
   end
 
   always @(negedge clk) begin 
@@ -43,14 +39,13 @@ module Memory #(parameter DATA_WIDTH = 16, SIZE = 1024, MEM_FILE)
 
   // port 2
   always @(posedge clk) begin
-    // port 2 
     if (wr_en2) begin
       ram[addr2] <= wr_data2;
-      rd_data2 <= wr_data2;
     end
-    else begin 
-      rd_data2 <= ram[addr2];
-    end
+  end
+
+  always @(negedge clk) begin 
+    rd_data2 <= ram[addr2];
   end
 
 endmodule

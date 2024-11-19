@@ -5,13 +5,13 @@ module AudioStreamer(
   input clk, 
   input reset_n, 
   input trigger,
-  input fifo_half_full,
+  input fifo_full,
   output [15:0] addr,
   output reg fifo_wr_en
 ); 
 
   localparam SOUND_BASE = 16'h0000;
-  localparam SOUND_LENGTH = 16'd2500;
+  localparam SOUND_LENGTH = 16'd44099;
 
   localparam IDLE         = 2'h0;
   localparam INIT         = 2'b1;
@@ -57,7 +57,7 @@ module AudioStreamer(
     end
     // write next sample
     else if (state == PLAYBACK) begin
-      if (!fifo_half_full) begin
+      if (!fifo_full) begin
         fifo_wr_en <= 1; 
         count <= count + 1'b1;
       end

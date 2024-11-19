@@ -21,8 +21,8 @@ module AudioCodec_config_rom
              LRHP_BOTH  = 1'b0,
              LZCEN      = 1'b0,
              RZCEN      = 1'b0,
-             LHPVOL     = 7'b1001111,   
-             RHPVOL     = 7'b1001111;   
+             LHPVOL     = 7'b1011111,   
+             RHPVOL     = 7'b1011111;   
 
   // reg 4 (analog path settings)
   localparam SIDEATT    = 2'b00,
@@ -36,7 +36,7 @@ module AudioCodec_config_rom
   // reg 5 (digital path settings)
   localparam  HPOR      = 1'b0, 
               DAC_MU    = 1'b0, 
-              DEEMPH    = 2'b01,
+              DEEMPH    = 2'b00,
               ADC_HPD   = 1'b0;
 
   // reg 6 (power settings)
@@ -59,7 +59,7 @@ module AudioCodec_config_rom
               FORMAT    = 2'b01;    // left justified
 
   // reg 8 (sample settings)
-  localparam  SR          = 4'b0110,      // 32000kHz
+  localparam  SR          = 4'b1000,      // 44100 Hz
               CLKO_DIV2   = 1'b0, 
               CLKI_DIV2   = 1'b0, 
               BOSR        = 1'b0, 

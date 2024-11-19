@@ -149,12 +149,13 @@ module AudioCodec_serializer #(parameter DATA_WIDTH = 16)
   // --------------------- 
 
   always @(*) begin 
-
+    if (!reset_n) 
+      fifo_rd_en <= 0;
     // read enable
-    if (state == START_SAMPLE) 
-      fifo_rd_en = 1;
+    else if (state == START_SAMPLE) 
+      fifo_rd_en <= 1;
     else 
-      fifo_rd_en = 0;
+      fifo_rd_en <= 0;
 
   end
   // ------------------------ 

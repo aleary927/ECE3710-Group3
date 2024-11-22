@@ -17,7 +17,7 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
 
   input fifo_full, 
   output reg fifo_wr_en,
-  output reg [DATA_WIDTH - 1:0] fifo_data
+  output [DATA_WIDTH - 1:0] fifo_data
 );
 
   // ************************* 
@@ -48,9 +48,7 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
   // states
   localparam  [2:0]
               IDLE          = 3'h0,   // nothing happening, fifo full
-              // SAMPLE_INIT   = 3'h1,   // initiate a series of reads
-              MEM_READ      = 3'h2,   // memory read in progress
-              DATA_COLLECT  = 3'h3,   // collecting data from mem read, adding to sample data to fifo
+              DATA_COLLECT  = 3'h3,   // collecting data from memory and adding it up to create mixes sample 
               SAMPLE_WRITE  = 3'h4;   // write sample to fifo
 
   // ****************************** 
@@ -58,21 +56,20 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
   // ***************************** 
 
   // table of samples currently in progress
-  // | in-progress | max address | current address |
-  // reg [ADDR_WIDTH * 2:0] playback_table [CONCURRENT_SAMPLES - 1:0];
-  // reg [CONCURRENT_SAMPLES - 1:0] playback_valid;
-  reg [ADDR_WIDTH:0] playback_table [CONCURRENT_SAMPLES - 1:0];
-  reg [ADDR_WIDTH - 1:0] playback_addrs [CONCURRENT_SAMPLES - 1:0];
+  reg [ADDR_WIDTH - 1:0] end_addrs [CONCURRENT_SAMPLES - 1:0];        // end addresses for each sample
+  reg [ADDR_WIDTH - 1:0] playback_addrs [CONCURRENT_SAMPLES - 1:0];   // current address for each sample
+  reg [DATA_WIDTH - 1:0] audio_data [CONCURRENT_SAMPLES - 1:0];       // audio data read from mem for each sample
+  reg [CONCURRENT_SAMPLES - 1:0] playback_status;               // whether each line in table is in progress
 
   reg [$clog2(CONCURRENT_SAMPLES) - 1:0] available_slot;
-  reg slot_available;
-  reg [$clog2(CONCURRENT_SAMPLES) - 1:0] table_line;
-  reg playback_in_progress;
+  wire slot_available;
+  reg [$clog2(CONCURRENT_SAMPLES):0] table_line;
+  wire playback_in_progress;
   wire table_line_valid;
   wire sample_complete;
   wire last_table_line;
-  reg [DATA_WIDTH - 1:0] mem_data_reg;
 
+  reg [DATA_WIDTH - 1:0] complete_sample;   // finished sample
 
   // states for controlling write to fifo, read, etc
   reg [2:0] state, n_state;
@@ -80,10 +77,12 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
   // initialize regs to zeros
   integer i; 
   initial begin 
+    $display("number of concurrent samples: %d", CONCURRENT_SAMPLES);
     // playback_valid = 'h0;
     for (i = 0; i < CONCURRENT_SAMPLES; i = i + 1) begin
       playback_addrs[i] = 'h0;
-      playback_table[i] = 'h0;
+      end_addrs[i] = 'h0;
+      audio_data[i] = 'h0;
     end
   end
 
@@ -104,27 +103,17 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
     case (state) 
       IDLE: begin 
         // read data for next sample if fifo has space available
-        if (!fifo_full & playback_in_progress) 
-          n_state = MEM_READ;
+        if (!fifo_full && playback_in_progress) 
+          n_state = DATA_COLLECT;
         else 
           n_state = IDLE;
       end
-      // SAMPLE_INIT: begin 
-      //   n_state = MEM_READ;
-      // end
-      MEM_READ: begin 
-        // memory read completed
-        if (1'b1) 
-          n_state = DATA_COLLECT;
-        else 
-          n_state = MEM_READ;
-      end
       DATA_COLLECT: begin 
-        // final memory read complete if table line is max
+        // final memory read complete if have gone through all lines in table
         if (last_table_line) 
           n_state = SAMPLE_WRITE; 
         else 
-          n_state = MEM_READ;
+          n_state = DATA_COLLECT;
       end
       SAMPLE_WRITE: begin 
         // only takes a single clock cycle, go back to idle
@@ -133,7 +122,6 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
       default: n_state = IDLE;
     endcase
   end
-
 
   // **************************** 
   // Sequential 
@@ -149,125 +137,65 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
       fifo_wr_en <= 0;
   end
 
-  // posedge mem read
-  always @(posedge clk) begin 
-    mem_data_reg <= mem_rd_data;
-  end
-
   // increment table line
   always @(posedge clk) begin 
     if (!reset_n) 
       table_line <= 'h0; 
     else if (state == DATA_COLLECT) 
       table_line <= table_line + 1'b1;
-    else if (state == IDLE) 
+    else 
       table_line <= 'h0;
   end
 
   // collect data 
   always @(posedge clk) begin 
-    if (!reset_n) 
-      fifo_data <= 'h0;
-    else if (state == DATA_COLLECT) begin
-      // if table line valid, add to fifo data
+    if (state == DATA_COLLECT) begin
+      // take in read data if sample in progress, else data is 0
       if (table_line_valid) begin 
-        fifo_data <= fifo_data + mem_data_reg;
+        audio_data[table_line] <= mem_rd_data;
       end
       else 
-        fifo_data <= fifo_data;
+        audio_data[table_line] <= 'h0;
     end
-    else if (state == IDLE) 
-      fifo_data <= 'h0;
-    else 
-      fifo_data <= fifo_data;
   end
 
-  // // increment address of sample, or reset table line
-  // always @(posedge clk) begin 
-  //   // do this on data collect state because it is always one clock cycle, and
-  //   // it happens for every line in playback table on each new sample
-  //   if ((state == DATA_COLLECT)) begin 
-  //     if (table_line_valid) begin 
-  //       // check if sample has completed
-  //       if (sample_complete)
-  //         // set invalid
-  //         playback_table[table_line][ADDR_WIDTH * 2] <= 1'b0;
-  //       else
-  //         // go to next sample
-  //         playback_table[table_line] <= {playback_table[table_line][ADDR_WIDTH * 2: ADDR_WIDTH], (playback_table[table_line][ADDR_WIDTH - 1:0] + 1'b1)};
-  //       end
-  //   end
-  //   else if (slot_available) begin 
-  //     if (sample_triggers[0])
-  //       playback_table[available_slot] <= {1'b1, SAMPLE0_END_ADDR, SAMPLE0_BASE_ADDR};
-  //     else if (sample_triggers[1]) 
-  //       playback_table[available_slot] <= {1'b1, SAMPLE1_END_ADDR, SAMPLE1_BASE_ADDR};
-  //     else if (sample_triggers[2]) 
-  //       playback_table[available_slot] <= {1'b1, SAMPLE2_END_ADDR, SAMPLE2_BASE_ADDR};
-  //     else if (sample_triggers[3])
-  //       playback_table[available_slot] <= {1'b1, SAMPLE3_END_ADDR, SAMPLE3_BASE_ADDR};
-  //   end
-  // end
-
-  // control playback address
-  always @(posedge clk) begin 
-    if (state == DATA_COLLECT) begin 
-      if (sample_complete) 
-        playback_table[table_line] <= 'h0;
-      else 
-        playback_addrs[table_line] <= mem_addr + 1'b1;
+  // increment playback addresses 
+  always@(posedge clk) begin 
+    
+    // determine if sample ended during data collect state
+    if ((state == DATA_COLLECT) && sample_complete) begin 
+      playback_status[table_line] <= 1'b0;
     end
-    else if (slot_available) begin
-      if (sample_triggers[0]) begin
-        playback_table[available_slot] <= {1'b1, SAMPLE0_END_ADDR};
+    // increment in sample write state
+    else if (state == SAMPLE_WRITE) begin 
+      for (i = 0; i < CONCURRENT_SAMPLES; i = i + 1) begin 
+        playback_addrs[i] <= playback_addrs[i] + 1'b1;
+      end
+    end
+    // otherwise take in new samples (in idle)
+    else if (slot_available && sample_triggers) begin 
+      // if (sample_triggers) begin
+        playback_status[available_slot] <= 1'b1;
+        end_addrs[available_slot] <= SAMPLE0_END_ADDR;
         playback_addrs[available_slot] <= SAMPLE0_BASE_ADDR;
-      end
-      else if (sample_triggers[1]) begin 
-        playback_table[available_slot] <= {1'b1, SAMPLE1_END_ADDR};
-        playback_addrs[available_slot] <= SAMPLE1_BASE_ADDR;
-      end
-      else if (sample_triggers[2]) begin 
-        playback_table[available_slot] <= {1'b1, SAMPLE2_END_ADDR};
-        playback_addrs[available_slot] <= SAMPLE2_BASE_ADDR;
-      end
-      else if (sample_triggers[3]) begin 
-        playback_table[available_slot] <= {1'b1, SAMPLE3_END_ADDR};
-        playback_addrs[available_slot] <= SAMPLE3_BASE_ADDR;
-      end
+      // end
+      // else if (sample_triggers[1]) begin 
+      //   playback_status[available_slot] <= 1'b1;
+      //   end_addrs[available_slot] <= SAMPLE1_END_ADDR;
+      //   playback_addrs[available_slot] <= SAMPLE1_BASE_ADDR;
+      // end
+      // else if (sample_triggers[2]) begin 
+      //   playback_status[available_slot] <= 1'b1;
+      //   end_addrs[available_slot] <= SAMPLE2_END_ADDR;
+      //   playback_addrs[available_slot] <= SAMPLE2_BASE_ADDR;
+      // end
+      // else if (sample_triggers[3]) begin 
+      //   playback_status[available_slot] <= 1'b1;
+      //   end_addrs[available_slot] <= SAMPLE3_END_ADDR;
+      //   playback_addrs[available_slot] <= SAMPLE3_BASE_ADDR;
+      // end
     end
   end
-
-  // control new samples
-  // // control read of data from 
-  // always @(posedge clk) begin 
-  //   if (!reset_n) 
-  //     mem_addr <= 0;
-  //   else if (state == MEM_READ) begin 
-  //     mem_addr <= playback_table[table_line][ADDR_WIDTH - 1:0];
-  //   end
-  //
-  // end
-
-  // // read from in-progress samples, add to data, increment or reset line in plackback table
-  // always @(posedge clk) begin 
-  //   // reset table line and fifo data
-  //   if (STATE == IDLE) begin 
-  //     table_line <= 0;
-  //     fifo_data <= 0;
-  //   end
-  //   // perform reads, collect data
-  //   else if (STATE == SAMPLE_READ) begin 
-  //     // increment table line
-  //     table_line <= table_line + 1'b1;
-  //     // if current line is in progress
-  //     if (playback_table[table_line][ADDR_WIDTH*2]) begin 
-  //       // add to data 
-  //       fifo_data <= fifo_data + 
-  //       playback_table[table_line][ADDR_WIDTH - 1:0] <= 
-  //     end
-  //   end
-  //
-  // end
 
   // potential sub state machine states 
   // NULL or IDLE (main state machine not in SAMPLE_READ)
@@ -291,43 +219,38 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
   // Combintional 
   // ****************************
   
-  // assign mem_addr = playback_table[table_line][ADDR_WIDTH - 1:0];
+  assign fifo_data = complete_sample;
+  
   assign mem_addr = playback_addrs[table_line];
-  // assign table_line_valid = playback_table[table_line][ADDR_WIDTH*2];
-  assign table_line_valid = (playback_table[table_line][ADDR_WIDTH] === 1'b1);
-  // assign sample_complete = playback_table[table_line][ADDR_WIDTH * 2 - 1:ADDR_WIDTH] == playback_table[table_line][ADDR_WIDTH - 1:0];
-  assign sample_complete = (playback_table[table_line][ADDR_WIDTH - 1:0] <= playback_addrs[table_line]);
-  assign last_table_line = table_line == (CONCURRENT_SAMPLES - 1);
+  assign table_line_valid = (playback_status[table_line] == 1'b1);
+  assign sample_complete = (playback_addrs[table_line] == end_addrs[table_line]);
+  assign last_table_line = (table_line >= (CONCURRENT_SAMPLES - 1));
 
   // find next available playback table slot
   always @(*) begin 
-    slot_available = 1'b0;
     available_slot = 'h0;
     for (i = 0; i < CONCURRENT_SAMPLES; i = i + 1) begin
       // if not in playback
-      if (playback_table[i][ADDR_WIDTH] === 1'b0) begin
-        slot_available = 1'b1; 
+      if (!playback_status[i]) begin
         available_slot = i;
       end
     end
-
   end
 
   // find if playback is in progress 
+  assign playback_in_progress = (playback_status != 'b0);
+  assign slot_available = (playback_status != {CONCURRENT_SAMPLES{1'b1}});
+
+  // add entries of table 
   always @(*) begin 
-    playback_in_progress = 1'b0;
+    complete_sample = 'h0;
     for (i = 0; i < CONCURRENT_SAMPLES; i = i + 1) begin 
-      if (playback_table[i][ADDR_WIDTH] === 1'b1) 
-        playback_in_progress = 1'b1;
+      complete_sample = complete_sample + audio_data[i];
     end
   end
-
 
   // **************************** 
   // Modules 
   // ****************************
-
-
-
 
 endmodule

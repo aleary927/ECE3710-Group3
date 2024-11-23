@@ -1,3 +1,7 @@
+/*
+* System without the hps instanciated, for testing everything other than music 
+* streaming.
+*/
 module System_no_hps(
   input CLOCK_50, 
 
@@ -26,7 +30,7 @@ module System_no_hps(
   VGA_VS,
   
   // special inputs (for drumpads)
-  input [35:0] GPIO_0
+  inout [35:0] GPIO_0
 ); 
 
   /******************** 
@@ -49,6 +53,12 @@ module System_no_hps(
   wire vga_mem_rd_en;
   wire [17:0] audio_mixer_addr
   wire audio_mixer_rd_valid;
+
+  // codec signals
+  wire [15:0] mixed_audio_data; 
+  wire audio_fifo_wr_en; 
+  wire audio_fifo_full;
+  wire audio_fifo_empty;
 
   // vga wires 
   wire [15:0] VGA_hCount; 
@@ -86,7 +96,7 @@ module System_no_hps(
   );
 
   // drumpad input processing
-  DrumPad_input_processor2 #(4, 50) drumpad_proc (
+  DrumPad_input_processor #(4, 15) drumpad_proc (
     .clk(CLOCK_50), 
     .reset_n(reset_n), 
     .drumpads_raw(drumpads_raw), 
@@ -112,7 +122,16 @@ module System_no_hps(
   // TODO add interface for waiting on reads depending on the read data valid signal
   // TODO add ability to pause and reset 
   // audio mixer/controller
-  // TODO instanciate module
+  AudioMixer #(16, 18, 16) mixer (
+    .clk(CLOCK_50), 
+    .reset_n(reset_n), 
+    .sample_triggers(drumpads_en), 
+    .mem_rd_data(mem_port2_rd_data), 
+    .mem_addr(audio_mixer_addr), 
+    .fifo_full(audio_fifo_full), 
+    .fifo_wr_en(audio_fifo_wr_en), 
+    .fifo_data(mixed_audio_data)
+  );
   
   // TODO add some pause logic to handle pauses smoothly
   // audio codec
@@ -120,7 +139,7 @@ module System_no_hps(
     .clk(CLOCK_50), 
     .reset_n(reset_n), 
     .reset_config_n(reset_n), 
-    .audio_data(), 
+    .audio_data(mixed_audio_data), 
 
     .I2C_SDAT(I2C_SDAT), 
     .I2C_SCLK(I2C_SCLK), 

@@ -56,7 +56,6 @@ module DrumPadDemo(
   assign GPIO_0[2] = AUD_XCK;
   assign GPIO_0[6] = fifo_wr_en;
   assign GPIO_0[0] = fifo_full;
-  // assign GPIO_1 = 'hz;
   
 
   AudioCodec codec (
@@ -76,7 +75,7 @@ module DrumPadDemo(
     .fifo_half_full(fifo_half_full)
   );
 
-  DrumPad_input_processor2 #(4, 50) input_proc (
+  DrumPad_input_processor #(4, 15) input_proc (
     .clk(CLOCK_50), 
     .reset_n(reset_n), 
     .drumpads_raw(drumpads_raw), 
@@ -84,33 +83,14 @@ module DrumPadDemo(
     .drumpads_debounced(drumpads_debounced)
   );
 
-  // DrumPad_input_processor #(4, 10) input_proc (
-  //   .clk(CLOCK_50), 
-  //   .reset_n(reset_n),
-  //   .raw(drumpads_raw),
-  //   .rising_edge(drumpads_rising_edge),
-  //   .debounced(drumpads_debounced)
-  // );
-
-  // AudioMixer #(16, 16, 4) mixer (
-  //   .clk(CLOCK_50), 
-  //   .reset_n(reset_n), 
-  //   .sample_triggers(trigger),
-  //   .mem_rd_data(mem_rd_data), 
-  //   .mem_addr(mem_addr), 
-  //   .fifo_full(fifo_half_full), 
-  //   .fifo_wr_en(fifo_wr_en), 
-  //   .fifo_data(fifo_data)
-  // );
-
-  AudioMixer2 #(16) mixer (
+  AudioMixer #(16, 16, 16) mixer (
     .clk(CLOCK_50), 
     .reset_n(reset_n), 
-    .triggers(trigger), 
-    .mem_data(mem_rd_data), 
+    .sample_triggers(trigger),
+    .mem_rd_data(mem_rd_data), 
     .mem_addr(mem_addr), 
     .fifo_full(fifo_full), 
-    .fifo_wr_en(fifo_wr_en),
+    .fifo_wr_en(fifo_wr_en), 
     .fifo_data(fifo_data)
   );
 

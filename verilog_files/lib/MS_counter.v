@@ -11,6 +11,7 @@ module MS_counter #(parameter DATA_WIDTH = 16)
   reg paused; 
   wire ms_count_reset_n;
   wire enable_gen_en;
+  wire en;
 
   // update config 
   always @(posedge clk) begin 

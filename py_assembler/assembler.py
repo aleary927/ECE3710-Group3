@@ -58,7 +58,9 @@ reg_codes : dict[str,str] = {
     '%re': 'E',
     '%rf': 'F',
     '%csp': 'F',
-    '%gsp': 'E'
+    '%gsp': 'E', 
+    '%RA': 'E',     # return address
+    '%SP': 'F'      # stack pointer
 }
 
 inst_codes : dict[str,str] = {
@@ -211,8 +213,8 @@ def precompile(filename):
                 sys.exit(f'MOVW imm too large, must be less than 0xFFFF, found {parsed_imm}')
             lo_byte = byte(parsed_imm, 0)
             hi_byte = byte(parsed_imm, 1)
-            df.write(f'MOVI ${lo_byte} {rdst}\n')
             df.write(f'LUI ${hi_byte} {rdst}\n')
+            df.write(f'ORI ${lo_byte} {rdst}\n')
         else:
             df.write(' '.join(parts) + '\n')
 

@@ -27,6 +27,7 @@ module DrumPadDemo(
   wire fifo_full;
   wire fifo_half_full;
   wire fifo_wr_en;
+  wire mixer_en;
 
   wire [15:0] mem_addr; 
   wire [15:0] mem_rd_data; 
@@ -38,13 +39,13 @@ module DrumPadDemo(
 
   assign reset_n = KEY[0];
 
-  assign trigger = drumpads_rising_edge | SW[3:0];
+  assign trigger = drumpads_rising_edge; // | SW[3:0];
+
+  assign mixer_en = SW[0];
+
+  assign LEDR[0] = mixer_en;
 
   assign drumpads_raw = {GPIO_1[7], GPIO_1[5], GPIO_1[3], GPIO_1[1]};
-  assign LEDR[0] = trigger[0];
-  assign LEDR[1] = trigger[1]; 
-  assign LEDR[2] = trigger[2];
-  assign LEDR[3] = trigger[3];
   assign LEDR[6] = drumpads_debounced[0]; 
   assign LEDR[7] = drumpads_debounced[1]; 
   assign LEDR[8] = drumpads_debounced[2]; 
@@ -86,6 +87,7 @@ module DrumPadDemo(
   AudioMixer #(16, 16, 16) mixer (
     .clk(CLOCK_50), 
     .reset_n(reset_n), 
+    .en(mixer_en),
     .sample_triggers(trigger),
     .mem_rd_data(mem_rd_data), 
     .mem_addr(mem_addr), 

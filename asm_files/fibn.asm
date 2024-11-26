@@ -75,7 +75,7 @@
 .read_loop_init
   MOVI $255 %r2    # base address for fib vals 
   # load address for switches (%r3)
-  MOVI $254 %r3 
+  MOVI $255 %r3 
   LUI $255 %r4 
   OR %r4 %r3
   # load address for hex (%r4)

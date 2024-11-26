@@ -2,6 +2,8 @@ module AudioCodec_serializer #(parameter DATA_WIDTH = 16)
 (
   input clk, 
   input reset_n, 
+  input fifo_clr,
+  input en,
   input lrclk,
   input bclk_rising_edge, 
   input bclk_falling_edge, 
@@ -10,11 +12,8 @@ module AudioCodec_serializer #(parameter DATA_WIDTH = 16)
 
   input fifo_wr_en,
   
-  // input [DATA_WIDTH - 1:0] left_channel_data, 
-  // input [DATA_WIDTH - 1:0] right_channel_data, 
   input [DATA_WIDTH - 1:0] audio_data,
 
-  output fifo_half_full,
   output fifo_full, 
   output fifo_empty,
 
@@ -137,7 +136,7 @@ module AudioCodec_serializer #(parameter DATA_WIDTH = 16)
   always @(posedge clk) begin 
     if (!reset_n) 
       fifo_rd_valid <= 0; 
-    else if (fifo_rd_en & !fifo_empty) 
+    else if (fifo_rd_en & !fifo_empty && en) 
       fifo_rd_valid <= 1;
     else 
       fifo_rd_valid <= 0;
@@ -165,42 +164,13 @@ module AudioCodec_serializer #(parameter DATA_WIDTH = 16)
   // mono so only one needed
   FIFO #(DATA_WIDTH, 6) fifo ( 
     .clk(clk), 
-    .reset_n(reset_n), 
+    .reset_n(reset_n & ~fifo_clr), 
     .wr_en(fifo_wr_en), 
-    .rd_en(fifo_rd_en), 
+    .rd_en(fifo_rd_en && en), 
     .data_in(audio_data), 
     .data_out(fifo_data), 
     .full(fifo_full), 
-    .empty(fifo_empty),
-    .half_full(fifo_half_full)
-    // .space_used()
+    .empty(fifo_empty)
   );
-
-  // FIFO #(DATA_WIDTH, 5) lc_fifo (
-  //   .clk(clk), 
-  //   .reset_n(reset_n), 
-  //   .wr_en(1), 
-  //   .rd_en(new_sample), 
-  //   .data_in(left_channel_data), 
-  //   .data_out(lc_fifo_data), 
-  //   .full(), 
-  //   .empty(), 
-  //   .half_full()
-  //   // .space_used()
-  // );
-  //
-  // FIFO #(DATA_WIDTH, 5) rc_fifo ( 
-  //   .clk(clk), 
-  //   .reset_n(reset_n), 
-  //   .wr_en(1), 
-  //   .rd_en(new_sample), 
-  //   .data_in(right_channel_data), 
-  //   .data_out(rc_fifo_data), 
-  //   .full(), 
-  //   .empty(),
-  //   .half_full()
-  //   // .space_used()
-  // );
-
 
 endmodule

@@ -10,6 +10,7 @@ module AudioCodec #(parameter DATA_WIDTH = 16)
   input reset_n, 
 
   input reset_config_n,
+  input en,
 
   input [DATA_WIDTH - 1:0] audio_data,
   
@@ -28,10 +29,8 @@ module AudioCodec #(parameter DATA_WIDTH = 16)
   output fifo_full, 
   output fifo_empty,
 
-  input fifo_wr_en, 
-  output fifo_half_full
-
-
+  input fifo_clr,
+  input fifo_wr_en
 );
 
   // ---------------
@@ -95,6 +94,8 @@ module AudioCodec #(parameter DATA_WIDTH = 16)
   (
     .clk(clk), 
     .reset_n(reset_n), 
+    .fifo_clr(fifo_clr),
+    .en(en),
     .lrclk(AUD_DACLRCK),
     .bclk_rising_edge(bclk_rising_edge), 
     .bclk_falling_edge(bclk_falling_edge),
@@ -102,11 +103,8 @@ module AudioCodec #(parameter DATA_WIDTH = 16)
     .lrclk_falling_edge(lrclk_falling_edge),
     .audio_data(audio_data),
     .fifo_wr_en(fifo_wr_en), 
-    .fifo_half_full(fifo_half_full),
     .fifo_full(fifo_full), 
     .fifo_empty(fifo_empty),
-    // .left_channel_data(audio_data), 
-    // .right_channel_data(audio_data),
     .i2s_data(AUD_DACDAT)
   );
 

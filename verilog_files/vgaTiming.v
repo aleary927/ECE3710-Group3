@@ -57,75 +57,75 @@ module vgaTiming(
   // main logic
   always @(posedge clk50MHz) begin 
     if (!clr) begin
-      clk_count <= 0;
-      hCount <= 0;
-      vCount <= 0;
-      bright <= 0;
-      hSync <= 1;
-      vSync <= 1;
-      vRetrace <= 1;
-      vRetraceLine <= 0;
+      clk_count <= 1'b0;
+      hCount <= 1'b0;
+      vCount <= 1'b0;
+      bright <= 1'b0;
+      hSync <= 1'b1;
+      vSync <= 1'b1;
+      vRetrace <= 1'b1;
+      vRetraceLine <= 1'b0;
     end
 
     // only do logic on enable signal
     else if (vgaClk) begin
 
       // always count clk cycles for horizontal
-      clk_count <= clk_count + 1;
-      if (clk_count == H_TS - 1) 
-        clk_count <= 0;
+      clk_count <= clk_count + 1'b1;
+      if (clk_count == H_TS - 1'b1) 
+        clk_count <= 1'b0;
       // always do hsync pulse 
-      else if (clk_count == H_TFP - 1) begin 
-        hSync <= 0;
+      else if (clk_count == H_TFP - 1'b1) begin 
+        hSync <= 1'b0;
       end
-      else if (clk_count == H_TFP + H_TPW - 1) begin 
-        hSync <= 1;
+      else if (clk_count == H_TFP + H_TPW - 1'b1) begin 
+        hSync <= 1'b1;
       end
 
       // if not in vertical retrace
       if (!vRetrace) begin 
         // if end of line is reached (end of display)
-        if (clk_count == H_TS - 1) begin
-          bright <= 0;
-          vCount <= vCount + 1;
+        if (clk_count == H_TS - 1'b1) begin
+          bright <= 1'b0;
+          vCount <= vCount + 1'b1;
 
           // reset vertical counter if on last row and initiate retrace
-          if (vCount == V_PIXELS - 1) begin
-            vCount <= 0;
-            vRetrace <= 1;
+          if (vCount == V_PIXELS - 1'b1) begin
+            vCount <= 1'b0;
+            vRetrace <= 1'b1;
           end
           // incrment vCount
           else 
-            vCount <= vCount + 1;
+            vCount <= vCount + 1'b1;
         end
         // if end of back porch is reached
-        else if (clk_count == H_TFP + H_TPW + H_TBP - 1) 
-          bright <= 1;
+        else if (clk_count == H_TFP + H_TPW + H_TBP - 1'b1) 
+          bright <= 1'b1;
 
         // increment hCount during Tdisp duration, otherwise it's 0
-        if (clk_count >= H_TFP + H_TPW + H_TBP && clk_count < H_TS - 1)
-          hCount <= hCount + 1;
+        if (clk_count >= H_TFP + H_TPW + H_TBP && clk_count < H_TS - 1'b1)
+          hCount <= hCount + 1'b1;
         else 
           hCount <= 0;
       end
       // if in vertical retrace
       else begin 
         // only perform logic at ends of lines
-        if (clk_count == H_TS - 1) begin
+        if (clk_count == H_TS - 1'b1) begin
           // increment line
-          vRetraceLine <= vRetraceLine + 1;
+          vRetraceLine <= vRetraceLine + 1'b1;
 
           // if end of vertical retrace
-          if (vRetraceLine == V_TFP + V_TPW + V_TBP - 1) begin 
-            vRetraceLine <= 0;
-            vRetrace <= 0;
+          if (vRetraceLine == V_TFP + V_TPW + V_TBP - 1'b1) begin 
+            vRetraceLine <= 1'b0;
+            vRetrace <= 1'b0;
           end
           // if at start of pulse
-          else if (vRetraceLine == V_TFP - 1)
-            vSync <= 0;
+          else if (vRetraceLine == V_TFP - 1'b1)
+            vSync <= 1'b0;
           // if at end of pulse
-          else if (vRetraceLine == V_TFP + V_TPW - 1) 
-            vSync <= 1;
+          else if (vRetraceLine == V_TFP + V_TPW - 1'b1) 
+            vSync <= 1'b1;
         end
       end
     end

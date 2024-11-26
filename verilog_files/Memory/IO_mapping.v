@@ -17,7 +17,7 @@ module IO_mapping(
   output [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, 
   input [3:0] drumpads,
   input [15:0] VGA_hCount, VGA_vCount, 
-  output [1:0] music_ctrl,
+  output [1:0] music_ctrl
 );
 
   /*********************** 
@@ -35,9 +35,10 @@ module IO_mapping(
               DRUMPAD_ADDR      = 16'hFFF7;
 
   // registers for I/O outputs 
-  reg [3:0] hex0, hex1, hex2, hex3, hex4, hex5, hex6;
-  reg [9:0] ledr;
-  reg [1:0] music_ctrl;
+  reg [3:0] hex0_reg, hex1_reg, hex2_reg, hex3_reg, hex4_reg, hex5_reg, hex6_reg;
+  reg [9:0] ledr_reg;
+  reg [1:0] music_ctrl_reg;
+  reg [15:0] rd_data_reg;
 
   /************************** 
   * Sequential 
@@ -47,41 +48,41 @@ module IO_mapping(
   always @(posedge clk) begin 
     // write all zeros to regs
     if (!reset_n) begin 
-      hex0 <= 4'b0; 
-      hex1 <= 4'b0;
-      hex2 <= 4'b0; 
-      hex3 <= 4'b0;
+      hex0_reg <= 4'b0; 
+      hex1_reg <= 4'b0;
+      hex2_reg <= 4'b0; 
+      hex3_reg <= 4'b0;
     end
     else if (mem_addr == HEX_L_ADDR && wr_en) begin 
-      {hex3, hex2, hex1, hex0} <= wr_data;
+      {hex3_reg, hex2_reg, hex1_reg, hex0_reg} <= wr_data;
     end
   end
 
   // write to hex high 
   always @(posedge clk) begin 
     if (!reset_n) begin 
-      hex4 <= 4'b0; 
-      hex5 <= 4'b0;
+      hex4_reg <= 4'b0; 
+      hex5_reg <= 4'b0;
     end
     else if (mem_addr == HEX_H_ADDR && wr_en) begin 
-      {hex5, hex4} <= wr_data[7:0];
+      {hex5_reg, hex4_reg} <= wr_data[7:0];
     end
   end
 
   // write to leds 
   always @(posedge clk) begin 
     if (!reset_n) 
-      leds <= 'b0;
+      ledr_reg <= 'b0;
     else if (mem_addr == LEDR_ADDR && wr_en) 
-      leds <= wr_data[9:0];
+      ledr_reg <= wr_data[9:0];
   end
 
   // write to music ctrl 
   always @(posedge clk) begin 
     if (!reset_n) 
-      music_ctrl <= 'b0;
+      music_ctrl_reg <= 'b0;
     else if (mem_addr == MUSIC_CTRL_ADDR && wr_en) 
-      music_ctrl <= wr_data[1:0];
+      music_ctrl_reg <= wr_data[1:0];
   end
 
   /************************ 
@@ -91,51 +92,55 @@ module IO_mapping(
   // generate read data by address
   always @(*) begin 
     case(mem_addr) 
-      HEX_L_ADDR: rd_data = {hex3, hex2, hex1, hex0};
-      HEX_H_ADDR: rd_data = {8'b0, hex5, hex4};
-      LEDR_ADDR: rd_data = {6'b0, LEDR};
-      SW_ADDR: rd_data = {6'b0, SW};
-      KEY_ADDR: rd_data = {12'b0, KEY};
-      DRUMPAD_ADDR: rd_data = {12'b0, drumpads};
-      VGA_HCOUNT_ADDR: rd_data = {VGA_hCount};
-      VGA_VCOUNT_ADDR: rd_data = {VGA_vCount};
-      MUSIC_CTRL_ADDR: rd_data = {14'b0, music_ctrl};
-      default: rd_data = 16'b0;
+      HEX_L_ADDR: rd_data_reg = {hex3_reg, hex2_reg, hex1_reg, hex0_reg};
+      HEX_H_ADDR: rd_data_reg = {8'b0, hex5_reg, hex4_reg};
+      LEDR_ADDR: rd_data_reg = {6'b0, ledr_reg};
+      SW_ADDR: rd_data_reg = {6'b0, SW};
+      KEY_ADDR: rd_data_reg = {12'b0, KEY};
+      DRUMPAD_ADDR: rd_data_reg = {12'b0, drumpads};
+      VGA_HCOUNT_ADDR: rd_data_reg = {VGA_hCount};
+      VGA_VCOUNT_ADDR: rd_data_reg = {VGA_vCount};
+      MUSIC_CTRL_ADDR: rd_data_reg = {14'b0, music_ctrl_reg};
+      default: rd_data_reg = 16'b0;
     endcase
   end
+
+  assign LEDR = ledr_reg; 
+  assign music_ctrl = music_ctrl_reg;
+  assign rd_data = rd_data_reg;
 
   /************************* 
   * Modules 
   *************************/
 
   hexTo7Seg ht7_0 (
-    .SW(hex0), 
+    .SW(hex0_reg), 
     .Hex(HEX0)
   );
 
   hexTo7Seg ht7_1 (
-    .SW(hex1), 
+    .SW(hex1_reg), 
     .Hex(HEX1)
   );
 
   hexTo7Seg ht7_2 (
-    .SW(hex2), 
+    .SW(hex2_reg), 
     .Hex(HEX2)
   );
 
   hexTo7Seg ht7_3 (
-    .SW(hex3), 
+    .SW(hex3_reg), 
     .Hex(HEX3)
   );
 
   hexTo7Seg ht7_4 (
-    .SW(hex4), 
+    .SW(hex4_reg), 
     .Hex(HEX4)
   );
 
   hexTo7Seg ht7_5 (
-    .SW(hex4), 
-    .Hex(HEX4)
+    .SW(hex5_reg), 
+    .Hex(HEX5)
   );
 
 endmodule

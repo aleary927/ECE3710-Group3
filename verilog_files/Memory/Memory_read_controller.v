@@ -4,20 +4,22 @@
 * One port to this controller can access memory unrestricted, 
 * and the other port may have to wait to recieve data.
 */
-module Memory_read_controller(
-  input [17:0] priority_addr, 
+module Memory_read_controller #(parameter ADDR_WIDTH = 18) 
+(
+  input clk,
+  input [ADDR_WIDTH - 1:0] priority_addr, 
   input priority_rd_en, 
 
-  input [17:0] secondary_addr, 
+  input [ADDR_WIDTH - 1:0] secondary_addr, 
 
-  output [17:0] addr_to_mem, 
+  output [ADDR_WIDTH - 1:0] addr_to_mem, 
   
-  output secondary_rd_data_valid,
+  output reg secondary_rd_data_valid
 ); 
 
   // on read, indicate which data was read
   always @(negedge clk) begin 
-    secondary_rd_data_valid = ~priority_rd_en;
+    secondary_rd_data_valid <= ~priority_rd_en;
   end
 
   // select address

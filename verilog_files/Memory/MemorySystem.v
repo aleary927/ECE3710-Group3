@@ -10,7 +10,7 @@ module MemorySystem #(parameter ADDR_BITS, MEM_FILE)
   input [3:0] KEY,
   input [9:0] SW, 
   output [9:0] LEDR, 
-  output [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, HEX6,
+  output [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5,
   input [3:0] drumpads,
   input [15:0] VGA_hCount, VGA_vCount, 
   output [1:0] music_ctrl,
@@ -51,7 +51,7 @@ module MemorySystem #(parameter ADDR_BITS, MEM_FILE)
   IO_mapping io_mapping (
     .clk(clk), 
     .reset_n(reset_n), 
-    .mem_addr(port1_addr), 
+    .mem_addr(cpu_addr), 
     .wr_en(cpu_wr_en), 
     .rd_data(cpu_rd_data_from_io), 
     .wr_data(cpu_wr_data), 
@@ -65,6 +65,7 @@ module MemorySystem #(parameter ADDR_BITS, MEM_FILE)
     .HEX4(HEX4),
     .HEX5(HEX5),
     .drumpads(drumpads), 
+    .music_ctrl(music_ctrl),
     .VGA_vCount(VGA_vCount), 
     .VGA_hCount(VGA_hCount)
   );
@@ -72,7 +73,7 @@ module MemorySystem #(parameter ADDR_BITS, MEM_FILE)
   Memory #(16, 2**ADDR_BITS, MEM_FILE) mem (
     .clk(clk), 
     .wr_en1(cpu_wr_en), 
-    .wr_en2(1'b0) // never written to from second port
+    .wr_en2(1'b0), // never written to from second port
     .addr1(cpu_addr_ext),
     .addr2(port2_addr), 
     .wr_data1(cpu_wr_data),

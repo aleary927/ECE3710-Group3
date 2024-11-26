@@ -10,6 +10,8 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
   input clk, 
   input reset_n, 
 
+  input en,
+
   input [3:0] sample_triggers,
   
   input [DATA_WIDTH - 1:0] mem_rd_data, 
@@ -26,14 +28,14 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
 
   // length of each sample
   localparam  [ADDR_WIDTH - 1:0]
-              SAMPLE0_LENGTH      = 16'h17da, 
-              SAMPLE1_LENGTH      = 16'h1bea, 
-              SAMPLE2_LENGTH      = 16'h208a, 
-              SAMPLE3_LENGTH      = 16'h12e4;
+              SAMPLE0_LENGTH      = 17'h17da, 
+              SAMPLE1_LENGTH      = 17'h1bea, 
+              SAMPLE2_LENGTH      = 17'h208a, 
+              SAMPLE3_LENGTH      = 17'h12e4;
             
   // base memory addresses of each sample
   localparam  [ADDR_WIDTH - 1:0] 
-              SAMPLE0_BASE_ADDR   = 0,
+              SAMPLE0_BASE_ADDR   = 2**16,
               SAMPLE1_BASE_ADDR   = SAMPLE0_BASE_ADDR + SAMPLE0_LENGTH, 
               SAMPLE2_BASE_ADDR   = SAMPLE1_BASE_ADDR + SAMPLE1_LENGTH, 
               SAMPLE3_BASE_ADDR   = SAMPLE2_BASE_ADDR + SAMPLE2_LENGTH;
@@ -103,7 +105,7 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
     case (state) 
       IDLE: begin 
         // read data for next sample if fifo has space available
-        if (!fifo_full && playback_in_progress) 
+        if (!fifo_full && playback_in_progress && en) 
           n_state = DATA_COLLECT;
         else 
           n_state = IDLE;
@@ -187,7 +189,7 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
     end
   end
   
-  assign fifo_data = complete_sample;
+  // assign fifo_data = complete_sample;
   assign fifo_wr_en = (state == SAMPLE_WRITE);
   
   assign mem_addr = addrs[table_line];
@@ -230,13 +232,21 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
         .reset_n(reset_n),
         .sample_base_addr(sample_base_addr), 
         .sample_end_addr(sample_end_addr), 
-        .init(tracker_init[g]), 
+        .init(tracker_init[g] && en), 
         .next_sample(next_sample), 
         .active(playback_status[g]), 
         .addr(addrs[g])
       );
     end
   endgenerate
+
+  Ditherer dither (
+    .clk(clk), 
+    .reset_n(reset_n), 
+    .en(fifo_wr_en), 
+    .signal_in(complete_sample), 
+    .signal_out(fifo_data)
+  );
 
 
 endmodule

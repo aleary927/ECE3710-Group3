@@ -33,7 +33,8 @@ module System_no_hps(
   inout [35:0] GPIO_1
 ); 
 
-localparam ADDR_WIDTH = 17;
+  localparam CPU_ADDR_WIDTH = 16;
+  localparam AUDIO_ADDR_WIDTH = 18;
 
   /******************** 
   * Internal wires 
@@ -48,13 +49,12 @@ localparam ADDR_WIDTH = 17;
   wire cpu_wr_en;
 
   // port 2 memory connectors 
-  wire [ADDR_WIDTH - 1:0] mem_port2_addr;
-  wire [15:0] mem_port2_rd_data;
-  // connectors to memory read controller
-  wire [ADDR_WIDTH - 1:0] vga_controller_addr; 
-  wire vga_mem_rd_en;
-  wire [ADDR_WIDTH - 1:0] audio_mixer_addr;
-  wire audio_mixer_rd_valid;
+  wire [CPU_ADDR_WIDTH - 1:0] vga_controller_addr; 
+  wire [15:0] vga_controller_data;
+
+  // audio mixer rom signals
+  wire [15:0] audio_mixer_data;
+  wire [AUDIO_ADDR_WIDTH - 1:0] audio_mixer_addr;
 
   // codec signals
   wire [15:0] mixed_audio_data; 
@@ -68,6 +68,8 @@ localparam ADDR_WIDTH = 17;
 
   // music playback control 
   wire [1:0] music_ctrl;
+  wire music_pause_n; 
+  wire music_reset;
 
   // drumpad wires
   wire [3:0] drumpads_raw;    // pre processing
@@ -80,8 +82,8 @@ localparam ADDR_WIDTH = 17;
 
   assign drumpads_raw = {GPIO_1[7], GPIO_1[5], GPIO_1[3], GPIO_1[1]};
 
-  assign vga_controller_addr = 'h0;
-  assign vga_mem_rd_en = 1'b0;
+  assign music_pause_n = music_ctrl[0]; 
+  assign music_reset = music_ctrl[1];
 
   // for convenience
   assign reset_n = KEY[0];
@@ -127,12 +129,12 @@ localparam ADDR_WIDTH = 17;
   // TODO add interface for waiting on reads depending on the read data valid signal
   // TODO add ability to pause and reset 
   // audio mixer/controller
-  AudioMixer #(16, ADDR_WIDTH, 16) mixer (
+  AudioMixer #(16, AUDIO_ADDR_WIDTH, 16) mixer (
     .clk(CLOCK_50), 
     .reset_n(reset_n), 
     .en(1'b1),
     .sample_triggers(drumpads_en), 
-    .mem_rd_data(mem_port2_rd_data), 
+    .mem_rd_data(audio_mixer_data), 
     .mem_addr(audio_mixer_addr), 
     .fifo_full(audio_fifo_full), 
     .fifo_wr_en(audio_fifo_wr_en), 
@@ -145,7 +147,7 @@ localparam ADDR_WIDTH = 17;
     .clk(CLOCK_50), 
     .reset_n(reset_n), 
     .reset_config_n(reset_n), 
-    .en(1'b1), 
+    .en(~music_pause_n), 
     .audio_data(mixed_audio_data), 
 
     .I2C_SDAT(FPGA_I2C_SDAT), 
@@ -156,26 +158,25 @@ localparam ADDR_WIDTH = 17;
     .AUD_XCK(AUD_XCK), 
     .AUD_DACDAT(AUD_DACDAT), 
 
-    .fifo_clr(1'b0),
+    .fifo_clr(music_reset),
     .fifo_full(audio_fifo_full), 
     .fifo_empty(audio_fifo_empty), 
     .fifo_wr_en(audio_fifo_wr_en)
   );
 
-  // handle memory read conflicts between audio and VGA
-  Memory_read_controller #(ADDR_WIDTH) rd_controller (
-    .clk(CLOCK_50),
-    .priority_addr(vga_controller_addr), 
-    .priority_rd_en(vga_mem_rd_en), 
-
-    .secondary_addr(audio_mixer_addr), 
-
-    .addr_to_mem(mem_port2_addr), 
-    .secondary_rd_data_valid(audio_mixer_rd_valid)
+  AudioROM #(
+    "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/basic_drums.dat", 
+    "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/basic_drums.dat" 
+    // "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/basic_drums.dat" 
+  ) 
+  audio_rom (
+    .clk(CLOCK_50), 
+    .addr(audio_mixer_addr),
+    .data(audio_mixer_data)
   );
 
   // Memory and IO mapping 
-  MemorySystem #(ADDR_WIDTH, "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/sys_test.dat") mem_system (
+  MemorySystem #(CPU_ADDR_WIDTH, "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/fibn.dat") mem_system (
     .clk(CLOCK_50), 
     .reset_n(reset_n), 
 
@@ -198,8 +199,8 @@ localparam ADDR_WIDTH = 17;
     .cpu_wr_data(mem_wr_data_from_cpu), 
     .cpu_rd_data(mem_rd_data_to_cpu), 
 
-    .port2_addr(mem_port2_addr), 
-    .port2_rd_data(mem_port2_rd_data)
+    .port2_addr(vga_controller_addr), 
+    .port2_rd_data(vga_controller_data)
   );
 
 endmodule

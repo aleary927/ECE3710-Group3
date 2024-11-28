@@ -208,13 +208,21 @@ def precompile(filename):
                 sys.exit('not enough MOVW args')
             imm = parts[1]
             rdst = parts[2]
-            parsed_imm = int(imm, 0)
-            if parsed_imm > 0xFFFF:
-                sys.exit(f'MOVW imm too large, must be less than 0xFFFF, found {parsed_imm}')
-            lo_byte = byte(parsed_imm, 0)
-            hi_byte = byte(parsed_imm, 1)
-            df.write(f'LUI ${hi_byte} {rdst}\n')
-            df.write(f'ORI ${lo_byte} {rdst}\n')
+            # if label
+            if imm[0] == '.':
+                df.write(f'LUI {imm} {rdst}\n') 
+                df.write(f'ORI {imm} {rdst}\n')
+            elif imm[0] == '$':
+                parsed_imm = int(imm[1:], 0)
+                if parsed_imm > 0xFFFF:
+                    sys.exit(f'MOVW imm too large, must be less than 0xFFFF, found {parsed_imm}')
+                lo_byte = byte(parsed_imm, 0)
+                hi_byte = byte(parsed_imm, 1)
+                df.write(f'LUI ${hi_byte} {rdst}\n')
+                df.write(f'ORI ${lo_byte} {rdst}\n')
+            else: 
+                print(f"Error: unsupported MOVW immediate: {imm}")
+                sys.exit()
         else:
             df.write(' '.join(parts) + '\n')
 
@@ -349,15 +357,23 @@ def assemble(filename: str):
                         sys.exit(f'ERROR: Unrecognized register on line {i+1} in instruction {x}')
                     else:
                         parsed_imm = int(imm[1:])
-                        if parsed_imm > 15 or -5 > parsed_imm:
+                        if parsed_imm > 15 or parsed_imm < -15:
                             sys.exit(f'ERROR: Out of range imm on line {i+1} in inst {x}'
                                     +f'\n\tImmediate must be between 0 and 15, found {parsed_imm}')
                         else:  
-                            # formatted_imm = f'{parsed_imm:01X}'
-                            formatted_imm = hex((parsed_imm + (1 << 4)) % (1 << 4))[2:]
-                            sign_bit = parsed_imm < 0
-                            # TODO: Bandaid fix, ASHUI is now unsupported
-                            wf.write('8' + reg_codes[r_dst] + str(int(sign_bit)) + formatted_imm + '\n')
+                            formatted_imm = f'{(parsed_imm & 0xF):01X}'
+                            if instr == 'LSHI' and parsed_imm < 0: 
+                                immHi = f'{(0b0001):01X}'
+                            elif instr == 'LSHI' and parsed_imm >= 0:
+                                immHi = f'{(0b0000):01X}'
+                            elif instr == 'ASHI' and parsed_imm < 0: 
+                                immHi = f'{(0b0011):01X}'
+                            elif instr == 'ASHI' and parsed_imm >=0:
+                                immHi = f'{(0b0010):01X}'
+                            else: 
+                                print("Error: bad shift instruction")
+                                sys.exit()
+                            wf.write('8' + reg_codes[r_dst] + immHi + formatted_imm + '\n')
             elif instr in b_type_insts: # ----------------------------------------------------------------------------------------
                 if len(parts) != 1:
                     sys.exit(f'ERROR: Wrong number of args on line {i+1} in instruction {x}\n\tExpected: 1, Found: {len(parts)}')

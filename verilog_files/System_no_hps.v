@@ -176,7 +176,7 @@ module System_no_hps(
   );
 
   // Memory and IO mapping 
-  MemorySystem #(CPU_ADDR_WIDTH, "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/fibn.dat") mem_system (
+  MemorySystem #(CPU_ADDR_WIDTH, "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/drumpad_test.dat") mem_system (
     .clk(CLOCK_50), 
     .reset_n(reset_n), 
 

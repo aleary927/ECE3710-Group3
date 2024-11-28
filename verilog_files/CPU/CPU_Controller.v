@@ -60,6 +60,7 @@ module CPU_Controller(
   localparam  SIGN_EXTEND       = 2'b00;    // 2's complement sign extend
   localparam  ZERO_EXTEND       = 2'b01;       // pad with 0s in MSBs
   localparam  ALIGN_HIGH        = 2'b10;    // align on the high order bits
+  localparam  SH_EXTEND         = 2'b11;    // sign extend from bit 4 for shifts
 
   // ----- Opcodes -----
 
@@ -95,8 +96,10 @@ module CPU_Controller(
   localparam MOV_EXT          = 4'b1101;
   localparam MUL_EXT          = 4'b1110;
   // shift extensions
-  localparam LSHI_EXT         = 4'b0000;    // LSB is don't care condition
-  localparam ASHUI_EXT        = 4'b0010;    // LSB is don't care condition
+  localparam LSHI_EXT0        = 4'b0000;   // Left
+  localparam LSHI_EXT1        = 4'b0001;    // right
+  localparam ASHUI_EXT0       = 4'b0010;    // left
+  localparam ASHUI_EXT1       = 4'b0011;    // right
   localparam LSH_EXT          = 4'b0100;
   localparam ASHU_EXT         = 4'b0110;
   // load, store, jump extensions
@@ -395,6 +398,7 @@ module CPU_Controller(
           // shifts 
           SH_OP: begin 
             reg_wr_en = 1; // always write to reg on shifts
+            sign_ext_mode = SH_EXTEND;
           end
           ANDI_OP: begin 
             z_f_en = 1;     // enable zero flag ??
@@ -478,11 +482,19 @@ module CPU_Controller(
       SH_OP:
         // choose function and source
         case (opcode_ext) 
-          LSHI_EXT: begin 
+          LSHI_EXT0: begin 
             alu_src = 1;  // imm
             alu_sel = LSH;    
           end
-          ASHUI_EXT: begin 
+          LSHI_EXT1: begin 
+            alu_src = 1;  // imm
+            alu_sel = LSH;    
+          end
+          ASHUI_EXT0: begin 
+            alu_src = 1;  // imm 
+            alu_sel = ASH;
+          end
+          ASHUI_EXT1: begin 
             alu_src = 1;  // imm 
             alu_sel = ASH;
           end

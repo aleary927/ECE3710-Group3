@@ -14,7 +14,7 @@ module ALU #(parameter DATA_WIDTH = 16)
     output reg C, L, F, Z, N
 );
 
-wire [$clog2(DATA_WIDTH) - 1:0] shift_amount;
+wire [$clog2(DATA_WIDTH - 1) - 1:0] shift_amount;
 wire [DATA_WIDTH - 1:0] inv_b;
 
 // parameters for function select
@@ -30,7 +30,7 @@ localparam MUL = 4'b1000;
 
 // if b is negative, shift amount is 2's complement inverse of b
 assign inv_b = ~b + 1'b1;
-assign shift_amount = b[DATA_WIDTH - 1] ? inv_b[$clog2(DATA_WIDTH) - 1:0] : b[$clog2(DATA_WIDTH) - 1:0];
+assign shift_amount = b[DATA_WIDTH - 1] ? inv_b[$clog2(DATA_WIDTH - 1) - 1:0] : b[$clog2(DATA_WIDTH - 1) - 1:0];
 
 always @(*) begin
     C = 0;

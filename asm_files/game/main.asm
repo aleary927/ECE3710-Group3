@@ -3,10 +3,11 @@
 # Main loop will handling calling procedures that process I/O, 
 # update game state, update visuals, and maintain syncronization.
 
-`define STACK_TOP 65000
+# initial value for stack
+`define STACK_INIT 65500
 
 # init stack
-  MOVW `STACK_TOP %r15
+  MOVW `STACK_INIT %SP
 
 # setup initial game state
 

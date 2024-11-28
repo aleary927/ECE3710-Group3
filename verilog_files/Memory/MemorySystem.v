@@ -31,11 +31,8 @@ module MemorySystem #(parameter ADDR_BITS, MEM_FILE)
   wire [15:0] cpu_rd_data_from_io;
   wire cpu_rd_data_src;     // 0 for mem, 1 for io
 
-  // extend CPU address to match address size
-  assign cpu_addr_ext = {{(ADDR_BITS - 16){1'b0}}, cpu_addr};
-
-  // most significant 15 bits of address are 1, last is don't care
-  assign cpu_rd_data_src = (cpu_addr[15:1] == {15{1'b1}});
+  // most significant 12 bits of address are 1, last 4 are don't care
+  assign cpu_rd_data_src = (cpu_addr[15:4] == {12{1'b1}});
 
   /*************************** 
   * Modules 
@@ -74,7 +71,7 @@ module MemorySystem #(parameter ADDR_BITS, MEM_FILE)
     .clk(clk), 
     .wr_en1(cpu_wr_en), 
     .wr_en2(1'b0), // never written to from second port
-    .addr1(cpu_addr_ext),
+    .addr1(cpu_addr),
     .addr2(port2_addr), 
     .wr_data1(cpu_wr_data),
     .wr_data2(16'b0),     // not writing to second port

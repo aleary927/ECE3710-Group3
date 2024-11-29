@@ -339,8 +339,8 @@
 		 parameter TILE_OFFSET = 1;    // REPRESENTATIV OF TILE ADDRESS DILE DEACTIVATION IS HANDLED IN BITGEN
 												 // SHOULD PROBABLY BE CHANGED LATER. 
 
-		 reg [1:0] state;                 // FSM state
-		 reg [3:0] live_tile;             // Local register for live tile management
+		 reg [1:0] state;           
+		 reg [3:0] live_tile;           
 
 		 // FSM States
 		 localparam IDLE = 2'b00;
@@ -360,16 +360,16 @@
 			  case (state)
 					IDLE: begin
 						 // Start by reading the speed
-						 mem_address <= INDEX + SPEED_OFFSET; // Address for speed
-						 mem_read_en <= 1;                   // Enable memory read
+						 mem_address <= INDEX + SPEED_OFFSET; // for speed
+						 mem_read_en <= 1;                   // enable memory read
 						 state <= READ_SPEED;
 					end
 
 					READ_SPEED: begin
 						 if (mem_read_done) begin
 							  speed <= mem_data_in[6:0];       // Extract speed from memory
-							  mem_address <= INDEX + TILE_OFFSET; // Address for tile data
-							  mem_read_en <= 1;               // Enable tile memory read
+							  mem_address <= INDEX + TILE_OFFSET; //Address for tiles
+							  mem_read_en <= 1;              
 							  state <= READ_TILE;
 						 end else begin
 							  mem_read_en <= 0;               // Disable read enable

@@ -2,6 +2,7 @@
 * System without the hps instanciated, for testing everything other than music 
 * streaming.
 */
+`define ENABLE_HPS
 module System_no_hps(
   input CLOCK_50, 
 
@@ -28,13 +29,18 @@ module System_no_hps(
   output VGA_HS,
   output VGA_SYNC_N,
   output VGA_VS,
+
+`ifdef ENABLE_HPS
+  input [16:0] hps_audio_data,
+  output [1:0] hps_audio_req,
+`endif
   
   // special inputs (for drumpads)
   inout [35:0] GPIO_1
 ); 
 
   localparam CPU_ADDR_WIDTH = 16;
-  localparam AUDIO_ADDR_WIDTH = 18;
+  localparam AUDIO_ADDR_WIDTH = 17;
 
   /******************** 
   * Internal wires 
@@ -88,6 +94,8 @@ module System_no_hps(
   // for convenience
   assign reset_n = KEY[0];
 
+  assign hps_audio_req[1] = 1'b0;
+
   /**************** 
   * Modules
   ****************/
@@ -111,19 +119,19 @@ module System_no_hps(
     .drumpads_debounced(drumpads_debounced)
   );
 
-  // TODO add hCount, vCount; create interface for reading info from mem
-  // vga 
-  VGA vga_control (
-    .clk(CLOCK_50), 
-    .VGA_RED(VGA_R), 
-    .VGA_GREEN(VGA_G), 
-    .VGA_BLUE(VGA_B), 
-    .VGA_CLK(VGA_CLK), 
-    .VGA_BLANK_N(VGA_BLANK_N), 
-    .VGA_HS(VGA_HS), 
-    .VGA_SYNC_N(VGA_SYNC_N),
-    .VGA_VS(VGA_VS)
-  );
+  // // TODO add hCount, vCount; create interface for reading info from mem
+  // // vga 
+  // VGA vga_control (
+  //   .clk(CLOCK_50), 
+  //   .VGA_RED(VGA_R), 
+  //   .VGA_GREEN(VGA_G), 
+  //   .VGA_BLUE(VGA_B), 
+  //   .VGA_CLK(VGA_CLK), 
+  //   .VGA_BLANK_N(VGA_BLANK_N), 
+  //   .VGA_HS(VGA_HS), 
+  //   .VGA_SYNC_N(VGA_SYNC_N),
+  //   .VGA_VS(VGA_VS)
+  // );
 
   // TODO add logic to read from HPS audio stream
   // TODO add interface for waiting on reads depending on the read data valid signal
@@ -136,6 +144,13 @@ module System_no_hps(
     .sample_triggers(drumpads_en), 
     .mem_rd_data(audio_mixer_data), 
     .mem_addr(audio_mixer_addr), 
+
+`ifdef ENABLE_HPS
+    .hps_audio_data_and_parity(hps_audio_data), 
+    .hps_req(hps_audio_req[0]),
+    .hps_en(SW[9]),
+`endif
+
     .fifo_full(audio_fifo_full), 
     .fifo_wr_en(audio_fifo_wr_en), 
     .fifo_data(mixed_audio_data)
@@ -176,7 +191,7 @@ module System_no_hps(
   );
 
   // Memory and IO mapping 
-  MemorySystem #(CPU_ADDR_WIDTH, "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/drumpad_test.dat") mem_system (
+  MemorySystem #(CPU_ADDR_WIDTH, "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/sync_test.dat") mem_system (
     .clk(CLOCK_50), 
     .reset_n(reset_n), 
 

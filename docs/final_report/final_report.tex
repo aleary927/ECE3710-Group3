@@ -1,0 +1,58 @@
+\documentclass[10pt, letterpaper]{IEEEconf} 
+
+\usepackage{subfiles}
+\usepackage{biblatex}
+
+\addbibresource{subfiles/Bib.bib}
+
+\title{Group 3 Final Report}
+\author{Aidan Leary}
+
+\begin{document}
+  \maketitle
+
+  \begin{abstract} 
+  \end{abstract}
+
+  \section{Introduction} 
+  \subfile{subfiles/Introduction.tex}
+
+  % overview of system from a birds eye view (audio system, hps integration, cpu, vga, mem etc.)
+  \section{System Overview}
+  \subfile{subfiles/SysOverview.tex}
+
+  % explanation of interesting parts of the CPU (mostly the millisecond counter instruction)
+  \section{CPU}
+  \subfile{subfiles/CPU.tex}
+
+  % explanation of how the HPS integration works
+  \section{HPS Integration}
+  \subfile{subfiles/HPS.tex}
+
+  % in-depth explanation of all audio components
+  \section{Audio Subsystem}
+  \subfile{subfiles/AudioSubsys}
+
+  % memory mapping
+  \section{Memory Mapping}
+  \subfile{subfiles/MemMapping.tex}
+
+  % drumpad circuitry, processing, etc
+  \section{Drum Pads}
+  \subfile{subfiles/Drumpads.tex}
+
+  % design of the software and how the cpu interacts with and controls the rest of the hardware
+  \section{Music Tiles Application}
+  \subfile{subfiles/Application.tex}
+
+  \section{Results}
+  \subfile{subfiles/Results.tex}
+
+  \section{Conclusion}
+  \subfile{subfiles/Conclusion.tex}
+
+  \cite{TestResource}
+
+  \printbibliography
+  
+\end{document}

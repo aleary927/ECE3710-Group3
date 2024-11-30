@@ -1,0 +1,21 @@
+\documentclass{subfile} 
+
+\begin{document}
+  This project involves several subsystems which all have to work together to create a 
+  cohesive final system. 
+  The main components are as follows: CPU, audio subsystem, VGA subsystem, memory subsystem, 
+  and HPS.
+
+  The CPU is the main controller, controlling the rest of the components via a memory-mapped interface. 
+  The CPU is able to pause audio, reset audio, read inputs from the drum pads, write data to be read 
+  by the VGA controller, and read and write from all the standard board peripherals (switches, leds, seven 
+  segment displays, buttons).
+
+  The HPS is used purely to stream a song to the FPGA. 
+  Songs are quit a bit of data, so it is necessary to store the song external to the FPGA. 
+  The HPS is a very nice solution because it allows for data to be read from a sound file hosted 
+  on the sd-card, removing the need for extra external hardware.
+
+  The role of the rest of the subsystems in the overall design are fairly self explanatory. 
+  Each subsystem will receive an in-depth explanation in the following sections.
+\end{document}

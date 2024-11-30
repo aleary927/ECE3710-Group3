@@ -1,0 +1,23 @@
+\documentclass{subfile} 
+
+\begin{document}
+  The in this design includes all baseline instructions outlined in the ISA document. 
+  In addition to the baseline instructions, other standard CR16 instructions are 
+  included in the CPU including all shift instructions, and multiply instructions. 
+  These instructions are included for arithmetic convenience.
+
+  The custom instructions added to the design all revolve around a millisecond counter 
+  included in the CPU.
+  These instructions are as follows: 
+  \begin{itemize}
+    \item MSCG \textit{Rdest}-- get the millisecond count (load into \textit{Rdest})
+    \item MSCR -- reset the millisecond counter
+    \item MSCP \textit{imm} -- pause (\$1) or unpause (\$0) the millisecond counter
+  \end{itemize}
+
+  The point of including this millisecond counter is due to the intended application being
+  very dependent on maintaining good timing. 
+  The timer allows the CPU to keep track of the current position within an audio track, 
+  which is how it decides when to take certain actions, such as making a tile appear on 
+  the display.
+\end{document}

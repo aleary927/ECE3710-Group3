@@ -1,0 +1,25 @@
+\documentclass{subfile} 
+
+\begin{document}
+  The overall setup of the application is by considering the music as broken down into 
+  windows of a half second each. 
+  For each half second window, each drum pad input is either expected to be struck, or not 
+  struck.
+  The millisecond counter is used to determine when the next window has been reached, which 
+  in turn causes score to be updated, and then the window information to be updated to reflect 
+  the next window.
+
+  \subsection{Software Layout} 
+  The procedures are organized into categories, to keep good separation of concerns. 
+  There are procedures for processing the drum pad inputs, keeping track of current window and 
+  other synchronization information, keeping track of score, and updating the display. 
+  These procedures all update global data structures, which are a simple way to share information. 
+  This setup means that the synchronization procedures are the only ones accessing the millisecond 
+  counter, and the drum pad processing procedures are the only ones accessing the drum pad I/O address.
+
+  \subsection{Synchronization} 
+
+  \subsection{Score Keeping}
+
+  \subsection{Visual Update}
+\end{document}

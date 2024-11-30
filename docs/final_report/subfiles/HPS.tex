@@ -1,0 +1,43 @@
+\documentclass{subfile} 
+
+\begin{document}
+  The ARM cores which compose the HPS (hard processor system) of the Cyclone V SoC (system on chip) FPGA 
+  are tightly integrated with the FPGA with over 1000 interconnecting signals. % TODO reference needed
+  The most notable of these connections are three bridges, allowing for data to be transferred 
+  easily and efficiently.
+
+  The reason for utilizing the HPS in this design was to keep the external hardware requirements 
+  to nothing beyond the drum pads. 
+  An FPGA is not a device meant to store large amounts of data at once, meaning that large audio 
+  files could not be hosted on the FPGA's limited onboard block memory.
+
+  The bridge utilized for this design is known as the "hps2fpgalw bridge". 
+  
+  \subsection{Instantiating HPS Connections}
+  The HPS must be initiated using megafunctions built into Quartus. 
+  These megafunctions can be instantiated by using the platform designer to generate IP.
+  Even with the help of the platform designer, this can be very tedious as it requires a lot of 
+  information about the hardware setup of the exact board which is being used. (including things like memory timing parameters) 
+  The best solution is to use a reference design which already has these complicated parameters 
+  preconfigured, luckily the board designers include a HPS reference design in the CD ROM. 
+  This design is known as the "golden hardware reference design" and includes the HPS connections 
+  already instantiated, with the proper configuration for the DE1-SoC board.
+  This reference design includes a top-level module for the 
+
+  \subsection{Transfer Protocol} 
+  In the interest of keeping this interface as simple as possible, the protocol for transferring 
+  data from the hps is simply done by flipping bits on either side.
+  When the audio mixer requests a sample from the HPS, it flips a bit to indicate the request.
+  Similarly, once the HPS gets the sample and writes it out to the memory location which corresponds to 
+  the bridge, the HPS also flips a bit on the end of the sample data, indicating that a new sample 
+  is ready. 
+  The mixer can read this bit, and determine that the HPS sample has been updated, allowing it to continue and 
+  write the completed sample out to the codec.
+
+  One of the connections between the FPGA and the HPS is an interrupt interconnect, allowing for custom interrupts 
+  to be received by the HPS, and handled by custom interrupt handlers. 
+  An interrupt handler is inserted into the kernel as a kernel module, allowing for modification of interrupt handlers 
+  while the HPS is booted up. 
+  This solution is technically better because it does not involve a busy loop, and interrupts should not be effected by 
+  what processes are running on the system, but this solution would have added unnecessary complexity.
+\end{document}

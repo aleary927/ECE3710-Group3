@@ -5,6 +5,7 @@
 *
 * Next sample is initiated when fifo is not full.
 */
+`define ENABLE_HPS
 module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPLES = 2) 
 (
   input clk, 
@@ -16,6 +17,12 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
   
   input [DATA_WIDTH - 1:0] mem_rd_data, 
   output [ADDR_WIDTH - 1:0] mem_addr,
+
+`ifdef ENABLE_HPS
+  input [16:0] hps_audio_data_and_parity, 
+  input hps_en,
+  output hps_req,
+`endif
 
   input fifo_full, 
   output fifo_wr_en,
@@ -73,6 +80,15 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
   wire last_table_line;
   wire next_sample;
 
+  // hps signals
+`ifdef ENABLE_HPS
+  reg last_sample_parity;
+  wire new_sample_parity;
+  reg sample_req;
+  reg hps_sample_is_ready;
+  wire [15:0] hps_audio_data;
+`endif
+
   reg [DATA_WIDTH - 1:0] complete_sample;   // finished sample
 
   // states for controlling write to fifo, read, etc
@@ -105,14 +121,18 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
     case (state) 
       IDLE: begin 
         // read data for next sample if fifo has space available
-        if (!fifo_full && playback_in_progress && en) 
+        if (!fifo_full && en) 
           n_state = DATA_COLLECT;
         else 
           n_state = IDLE;
       end
       DATA_COLLECT: begin 
         // final memory read complete if have gone through all lines in table
-        if (last_table_line) 
+`ifdef ENABLE_HPS
+        if (last_table_line && hps_sample_is_ready) 
+`else 
+        if (last_table_line)
+`endif
           n_state = SAMPLE_WRITE; 
         else 
           n_state = DATA_COLLECT;
@@ -129,11 +149,41 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
   // Sequential 
   // **************************** 
 
+  // control reading of data from HPS 
+`ifdef ENABLE_HPS
+  always @(posedge clk) begin 
+    if (!reset_n) begin 
+      hps_sample_is_ready <= 1'b0;
+      sample_req <= 1'b0;
+    end
+    // if hps not enabled, don't wait on hps sample data
+    else if (!hps_en) begin 
+      hps_sample_is_ready <= 1'b1;
+    end
+    // during idle, reset
+    else if (state == IDLE) begin 
+      hps_sample_is_ready <= 1'b0;
+    end
+    // during data collect, make request and indicate once data received
+    else if (state == DATA_COLLECT) begin 
+      // make sample request on first table line
+      if (table_line == 'h0) begin 
+        sample_req <= ~sample_req; 
+      end
+      // indicate that data is read once parity bit flipped
+      else if (new_sample_parity != last_sample_parity) begin 
+        last_sample_parity <= new_sample_parity; 
+        hps_sample_is_ready <= 1'b1;
+      end
+    end
+  end
+`endif
+
   // increment table line
   always @(posedge clk) begin 
     if (!reset_n) 
       table_line <= 'h0; 
-    else if (state == DATA_COLLECT) 
+    else if (state == DATA_COLLECT && !last_table_line) 
       table_line <= table_line + 1'b1;
     else 
       table_line <= 'h0;
@@ -162,7 +212,7 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
   end
 
   //***************************** 
-  // Combintional 
+  // Combinational 
   // ****************************
 
   // select address based on trigger 
@@ -196,6 +246,13 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
   assign table_line_valid = (playback_status[table_line] == 1'b1);
   assign last_table_line = (table_line >= (CONCURRENT_SAMPLES - 1));
 
+  // outputs for hps
+`ifdef ENABLE_HPS
+  assign hps_req = sample_req;
+  assign hps_audio_data = hps_audio_data_and_parity[15:0];
+  assign new_sample_parity = hps_audio_data_and_parity[16];
+`endif
+
   // find next available playback table slot
   always @(*) begin 
     available_slot = 'h0;
@@ -212,12 +269,16 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
   assign slot_available = (playback_status != {CONCURRENT_SAMPLES{1'b1}});
   assign next_sample = (state == SAMPLE_WRITE);
 
-  // add entries of table 
+  // add entries of table and hps sample
   always @(*) begin 
     complete_sample = 'h0;
     for (i = 0; i < CONCURRENT_SAMPLES; i = i + 1) begin 
       complete_sample = complete_sample + audio_data[i];
     end
+`ifdef ENABLE_HPS 
+    if (hps_en)
+      complete_sample = complete_sample + hps_audio_data;
+`endif
   end
 
   // **************************** 

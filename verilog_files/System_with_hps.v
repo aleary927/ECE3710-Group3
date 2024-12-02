@@ -179,13 +179,19 @@ module System_with_hps (
   wire [27:0] stm_hw_events;
   wire        fpga_clk_50;
 
-  wire [16:0] hps_audio_data; 
+  wire [23:0] hps_audio_data; 
   wire [7:0] hps_audio_req;
 
   // connection of internal logics
   // assign LEDR[9:1] = fpga_led_internal;
   assign stm_hw_events    = {{4{1'b0}}, SW, LEDR[9:1], fpga_debounced_buttons};
   assign fpga_clk_50=CLOCK_50;
+
+  assign GPIO_0[0] = AUD_XCK; 
+  assign GPIO_0[1] = AUD_BCLK; 
+  assign GPIO_0[2] = AUD_DACLRCK;
+  assign GPIO_0[3] = AUD_DACDAT; 
+  
   //=======================================================
   //  Structural coding
   //=======================================================
@@ -379,7 +385,7 @@ System_no_hps sys (
   .VGA_HS(VGA_HS), 
   .VGA_SYNC_N(VGA_SYNC_N), 
   .VGA_VS(VGA_VS),
-  .hps_audio_data(hps_audio_data),
+  .hps_audio_data(hps_audio_data[17:0]),
   .hps_audio_req(hps_audio_req[1:0]),
   .GPIO_1(GPIO_1)
 );

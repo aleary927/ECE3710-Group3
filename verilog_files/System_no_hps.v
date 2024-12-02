@@ -16,8 +16,8 @@ module System_no_hps(
   inout FPGA_I2C_SDAT, 
   output FPGA_I2C_SCLK, 
 
-  input AUD_BCLK, 
-  input AUD_DACLRCK, 
+  inout AUD_BCLK, 
+  inout AUD_DACLRCK, 
   output AUD_XCK, 
   output AUD_DACDAT, 
 
@@ -31,8 +31,8 @@ module System_no_hps(
   output VGA_VS,
 
 `ifdef ENABLE_HPS
-  input [16:0] hps_audio_data,
-  output [1:0] hps_audio_req,
+  input [17:0] hps_audio_data,      // data + parity (song finished, parity, data)
+  output [1:0] hps_audio_req,       // control signals to hps (reset, request)
 `endif
   
   // special inputs (for drumpads)
@@ -73,9 +73,16 @@ module System_no_hps(
   wire [15:0] VGA_vCount;
 
   // music playback control 
-  wire [1:0] music_ctrl;
+  wire [2:0] music_ctrl;
   wire music_pause_n; 
   wire music_reset;
+  wire music_hps_en; 
+  wire music_pause;
+
+`ifdef ENABLE_HPS 
+  wire song_done;
+  wire hps_req;
+`endif
 
   // drumpad wires
   wire [3:0] drumpads_raw;    // pre processing
@@ -88,13 +95,19 @@ module System_no_hps(
 
   assign drumpads_raw = {GPIO_1[7], GPIO_1[5], GPIO_1[3], GPIO_1[1]};
 
-  assign music_pause_n = music_ctrl[0]; 
-  assign music_reset = music_ctrl[1];
+  // break music ctrl into more explicitly named signals
+  assign music_pause = music_ctrl[0]; 
+  assign music_hps_en = music_ctrl[1];
+  assign music_reset = music_ctrl[2];
 
   // for convenience
   assign reset_n = KEY[0];
 
-  assign hps_audio_req[1] = 1'b0;
+`ifdef ENABLE_HPS
+  assign hps_audio_req[1] = music_reset;
+  assign song_done = hps_audio_data[17];
+  assign hps_audio_req[0] = hps_req;
+`endif
 
   /**************** 
   * Modules
@@ -140,15 +153,15 @@ module System_no_hps(
   AudioMixer #(16, AUDIO_ADDR_WIDTH, 16) mixer (
     .clk(CLOCK_50), 
     .reset_n(reset_n), 
-    .en(1'b1),
+    .en(~music_pause),
     .sample_triggers(drumpads_en), 
     .mem_rd_data(audio_mixer_data), 
     .mem_addr(audio_mixer_addr), 
 
 `ifdef ENABLE_HPS
-    .hps_audio_data_and_parity(hps_audio_data), 
-    .hps_req(hps_audio_req[0]),
-    .hps_en(SW[9]),
+    .hps_audio_data_and_parity(hps_audio_data[16:0]), 
+    .hps_req(hps_req),
+    .hps_en(music_hps_en),
 `endif
 
     .fifo_full(audio_fifo_full), 
@@ -162,7 +175,7 @@ module System_no_hps(
     .clk(CLOCK_50), 
     .reset_n(reset_n), 
     .reset_config_n(reset_n), 
-    .en(~music_pause_n), 
+    .en(~music_pause), 
     .audio_data(mixed_audio_data), 
 
     .I2C_SDAT(FPGA_I2C_SDAT), 
@@ -180,9 +193,8 @@ module System_no_hps(
   );
 
   AudioROM #(
-    "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/basic_drums.dat", 
-    "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/basic_drums.dat" 
-    // "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/basic_drums.dat" 
+    "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/stink01.dat", 
+    "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/stink23.dat" 
   ) 
   audio_rom (
     .clk(CLOCK_50), 
@@ -191,7 +203,7 @@ module System_no_hps(
   );
 
   // Memory and IO mapping 
-  MemorySystem #(CPU_ADDR_WIDTH, "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/sync_test.dat") mem_system (
+  MemorySystem #(CPU_ADDR_WIDTH, "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/music_ctrl.dat") mem_system (
     .clk(CLOCK_50), 
     .reset_n(reset_n), 
 
@@ -208,6 +220,11 @@ module System_no_hps(
     .VGA_hCount(VGA_hCount), 
     .VGA_vCount(VGA_vCount),
     .music_ctrl(music_ctrl), 
+`ifdef ENABLE_HPS
+    .song_done(song_done),
+`else 
+    .song_done(1'b0),
+`endif
 
     .cpu_wr_en(cpu_wr_en), 
     .cpu_addr(mem_addr_from_cpu), 

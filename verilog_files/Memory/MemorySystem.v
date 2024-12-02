@@ -13,7 +13,8 @@ module MemorySystem #(parameter ADDR_BITS, MEM_FILE)
   output [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5,
   input [3:0] drumpads,
   input [15:0] VGA_hCount, VGA_vCount, 
-  output [1:0] music_ctrl,
+  output [2:0] music_ctrl,      // (reset, hps_en, pause)
+  input song_done,          // from hps
 
   // cpu port
   input cpu_wr_en, 
@@ -63,6 +64,7 @@ module MemorySystem #(parameter ADDR_BITS, MEM_FILE)
     .HEX5(HEX5),
     .drumpads(drumpads), 
     .music_ctrl(music_ctrl),
+    .song_done(song_done),
     .VGA_vCount(VGA_vCount), 
     .VGA_hCount(VGA_hCount)
   );

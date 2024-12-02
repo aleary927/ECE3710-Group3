@@ -17,7 +17,8 @@ module IO_mapping(
   output [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, 
   input [3:0] drumpads,
   input [15:0] VGA_hCount, VGA_vCount, 
-  output [1:0] music_ctrl
+  input song_done,
+  output [2:0] music_ctrl     // (reset, hps_en, pause)
 );
 
   /*********************** 
@@ -32,12 +33,13 @@ module IO_mapping(
               VGA_HCOUNT_ADDR   = 16'hFFFA,
               VGA_VCOUNT_ADDR   = 16'hFFF9,
               MUSIC_CTRL_ADDR   = 16'hFFF8,
-              DRUMPAD_ADDR      = 16'hFFF7;
+              DRUMPAD_ADDR      = 16'hFFF7,
+              SONG_STATE_ADDR   = 16'hFFF6;
 
   // registers for I/O outputs 
   reg [3:0] hex0_reg, hex1_reg, hex2_reg, hex3_reg, hex4_reg, hex5_reg, hex6_reg;
   reg [9:0] ledr_reg;
-  reg [1:0] music_ctrl_reg;
+  reg [2:0] music_ctrl_reg;
   reg [15:0] rd_data_reg;
 
   /************************** 
@@ -82,7 +84,7 @@ module IO_mapping(
     if (!reset_n) 
       music_ctrl_reg <= 'b0;
     else if (mem_addr == MUSIC_CTRL_ADDR && wr_en) 
-      music_ctrl_reg <= wr_data[1:0];
+      music_ctrl_reg <= wr_data[2:0];
   end
 
   /************************ 
@@ -100,7 +102,8 @@ module IO_mapping(
       DRUMPAD_ADDR: rd_data_reg = {12'b0, drumpads};
       VGA_HCOUNT_ADDR: rd_data_reg = {VGA_hCount};
       VGA_VCOUNT_ADDR: rd_data_reg = {VGA_vCount};
-      MUSIC_CTRL_ADDR: rd_data_reg = {14'b0, music_ctrl_reg};
+      MUSIC_CTRL_ADDR: rd_data_reg = {13'b0, music_ctrl_reg};
+      SONG_STATE_ADDR: rd_data_reg = {15'h0, song_done};
       default: rd_data_reg = 16'b0;
     endcase
   end

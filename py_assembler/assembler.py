@@ -193,16 +193,16 @@ def precompile(filename):
         if len(parts) > 0 and parts[0] == 'CALL':
             if len(parts) < 2:
                 sys.exit('not enough CALL args')
+
             label = parts[1]
-            reglist = parts[2][1:-1].split(',')
-            if len(reglist) > 5:
-                sys.exit('too many parameters')
-            for i, reg in enumerate(reglist):
-                if reg != '':
-                    df.write(f'MOV {reg} {parameter_regs[i]}\n')
-            df.write(f'MOVI {label} %rA\n')
-            df.write(f'LUI {label} %rA\n')
-            df.write(f'JAL %rA %rA\n')
+
+            df.write('SUBI $1 %SP\n')
+            df.write('STOR %RA %SP\n')
+            df.write(f'LUI {label} %RA\n')
+            df.write(f'ORI {label} %RA\n')
+            df.write('JAL %RA %RA\n')
+            df.write('LOAD %RA %SP\n')
+            df.write('ADDI $1 %SP\n')
         elif len(parts) > 0 and parts[0] == 'MOVW':
             if len(parts) < 3:
                 sys.exit('not enough MOVW args')

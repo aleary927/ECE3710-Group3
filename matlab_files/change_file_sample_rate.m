@@ -12,11 +12,7 @@ function change_file_sample_rate(input_file, output_file, fs_out)
 
   resampled_signal = change_sample_rate(original_signal, fs_in, fs_out);
 
-  % resampled_signal = resampled_signal * (2^15 - 1) * max(resampled_signal);
+  audiowrite(output_file, resampled_signal, fs_out)
 
-  fd = fopen(output_file, 'w'); 
-  binstr = gen_binstr(resampled_signal, 16);
-  fprintf(fd, "%s\n", binstr{:});
-  fclose(fd);
 
 end

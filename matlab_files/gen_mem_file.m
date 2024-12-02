@@ -15,7 +15,7 @@ function gen_mem_file(input_files, scale, fs_target, output_file, mem_size)
 
     % resample if necessary
     if fs ~= fs_target 
-      fprintf("Changing sample rate from %d Hz to %d Hz", fs, fs_target);
+      fprintf("Changing sample rate from %d Hz to %d Hz\n", fs, fs_target);
       audio = change_sample_rate(audio, fs, fs_target);
     end
 

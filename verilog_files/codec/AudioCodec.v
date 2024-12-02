@@ -20,8 +20,8 @@ module AudioCodec #(parameter DATA_WIDTH = 16)
 
   // codec's I2S interface
   // input AUD_ADCDAT,
-  input AUD_BCLK, 
-  input AUD_DACLRCK, 
+  inout AUD_BCLK, 
+  inout AUD_DACLRCK, 
   // input AUD_ADCLRCK,
   output AUD_XCK, 
   output AUD_DACDAT,
@@ -45,7 +45,6 @@ module AudioCodec #(parameter DATA_WIDTH = 16)
   wire init_complete;
   // wire reset_config_n;
 
-
   // -------------------- 
   // Combinational Logic 
   // --------------------
@@ -58,6 +57,13 @@ module AudioCodec #(parameter DATA_WIDTH = 16)
   // -------------- 
   // Modules 
   // -------------- 
+
+  AudioCodec_clk_gen #(384, 16)  clk_gen (
+    .AUD_XCK(AUD_XCK), 
+    .reset_n(reset_n), 
+    .AUD_BCLK(AUD_BCLK), 
+    .AUD_DACLRCK(AUD_DACLRCK)
+  );
 
   AudioPLL codec_pll (
     .audio_clk_clk(AUD_XCK), 

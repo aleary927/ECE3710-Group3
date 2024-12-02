@@ -65,7 +65,7 @@ module AudioCodec_serializer #(parameter DATA_WIDTH = 16)
   always @(*) begin 
     case (state) 
       NULL_STATE: begin 
-        if (lrclk_rising_edge & bclk_falling_edge) 
+        if (lrclk_rising_edge && bclk_falling_edge) 
           n_state = START_SAMPLE; 
         else 
           n_state = NULL_STATE;
@@ -73,14 +73,14 @@ module AudioCodec_serializer #(parameter DATA_WIDTH = 16)
       START_SAMPLE: n_state = START_LEFT;
       START_LEFT: n_state = TRANSFER_LEFT;
       TRANSFER_LEFT: begin 
-        if (lrclk_falling_edge & bclk_falling_edge) 
+        if (lrclk_falling_edge && bclk_falling_edge) 
           n_state = START_RIGHT; 
         else 
           n_state = TRANSFER_LEFT;
       end
       START_RIGHT: n_state = TRANSFER_RIGHT; 
       TRANSFER_RIGHT: begin 
-        if (lrclk_rising_edge & bclk_falling_edge)
+        if (lrclk_rising_edge && bclk_falling_edge)
           n_state = START_SAMPLE;
         else 
           n_state = TRANSFER_RIGHT;
@@ -114,7 +114,7 @@ module AudioCodec_serializer #(parameter DATA_WIDTH = 16)
     else if (state == START_RIGHT) begin 
       shiftreg <= sample_data;
     end
-    else if ((state == TRANSFER_LEFT) | (state == TRANSFER_RIGHT)) begin 
+    else if ((state == TRANSFER_LEFT) || (state == TRANSFER_RIGHT)) begin 
       if (bclk_falling_edge)
         shiftreg <= {shiftreg[DATA_WIDTH - 2:0], 1'b0};
     end
@@ -136,7 +136,7 @@ module AudioCodec_serializer #(parameter DATA_WIDTH = 16)
   always @(posedge clk) begin 
     if (!reset_n) 
       fifo_rd_valid <= 0; 
-    else if (fifo_rd_en & !fifo_empty && en) 
+    else if (fifo_rd_en && !fifo_empty && en) 
       fifo_rd_valid <= 1;
     else 
       fifo_rd_valid <= 0;

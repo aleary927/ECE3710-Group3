@@ -13,30 +13,30 @@ module AudioCodec_config_rom
              RLIN_BOTH  = 1'b0,
              LIN_MUTE   = 1'b0,
              RIN_MUTE   = 1'b0,
-             LINVOL     = 5'b10110,
-             RINVOL     = 5'b10110; 
+             LINVOL     = 5'b11010,
+             RINVOL     = 5'b11010; 
 
   // reg 2/3 (headphone out settings)
   localparam RLHP_BOTH  = 1'b0,
              LRHP_BOTH  = 1'b0,
              LZCEN      = 1'b0,
              RZCEN      = 1'b0,
-             LHPVOL     = 7'b1011111,   
-             RHPVOL     = 7'b1011111;   
+             LHPVOL     = 7'b1110010,   
+             RHPVOL     = 7'b1110010;   
 
   // reg 4 (analog path settings)
-  localparam SIDEATT    = 2'b00,
-             SDETONE    = 1'b0, 
+  localparam SIDEATT    = 2'b11,
+             SDETONE    = 1'b1, 
              DAC_SEL    = 1'b1,    // DAC outout enabled
-             BYPASS     = 1'b0, 
+             BYPASS     = 1'b1, 
              INSEL      = 1'b0,
-             MUTE_MIC   = 1'b1,
+             MUTE_MIC   = 1'b0,
              MIC_BOOST  = 1'b0;
 
   // reg 5 (digital path settings)
   localparam  HPOR      = 1'b0, 
               DAC_MU    = 1'b0, 
-              DEEMPH    = 2'b00,
+              DEEMPH    = 2'b11,
               ADC_HPD   = 1'b0;
 
   // reg 6 (power settings)
@@ -52,17 +52,17 @@ module AudioCodec_config_rom
 
   // reg 7 (data format settings)
   localparam  BCLK_INV  = 1'b0,
-              MS        = 1'b1,         // master
+              MS        = 1'b0,         // master
               LR_SWAP   = 1'b0, 
               LRP       = 1'b0, 
               IWL       = 2'b00,    // 16 bits
               FORMAT    = 2'b01;    // left justified
 
   // reg 8 (sample settings)
-  localparam  SR          = 4'b1000,      // 44100 Hz
+  localparam  SR          = 4'b0000,      // 48000 Hz
               CLKO_DIV2   = 1'b0, 
               CLKI_DIV2   = 1'b0, 
-              BOSR        = 1'b0, 
+              BOSR        = 1'b1, 
               USB_NORM    = 1'b0;
 
   // reg 9 (active) 

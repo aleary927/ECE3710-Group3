@@ -223,6 +223,22 @@ def precompile(filename):
             else: 
                 print(f"Error: unsupported MOVW immediate: {imm}")
                 sys.exit()
+        elif len(parts) > 0 and parts[0] == 'RET': 
+            if len(parts) > 1: 
+                sys.exit("Too many RET args")
+            df.write('JUC %RA\n')
+        elif len(parts) > 0 and parts[0] == 'SREG': 
+            if len(parts) > 2: 
+                sys.exit('Wrong number of args for SREG')
+            reg = parts[1]
+            df.write('SUBI $1 %SP\n')
+            df.write(f'STOR {reg} %SP\n')
+        elif len(parts) > 0 and parts[0] == 'LREG': 
+            if len(parts) > 2: 
+                sys.exit('Wrong number of args for LREG')
+            reg = parts[1]
+            df.write(f'LOAD {reg} %SP\n')
+            df.write('ADDI $1 %SP\n')
         else:
             df.write(' '.join(parts) + '\n')
 

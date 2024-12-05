@@ -12,7 +12,7 @@ module MemorySystem #(parameter ADDR_BITS, MEM_FILE)
   output [9:0] LEDR, 
   output [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5,
   input [3:0] drumpads,
-  input [15:0] VGA_hCount, VGA_vCount, 
+  input [9:0] VGA_hCount, VGA_vCount, 
   output [2:0] music_ctrl,      // (reset, hps_en, pause)
   input song_done,          // from hps
 

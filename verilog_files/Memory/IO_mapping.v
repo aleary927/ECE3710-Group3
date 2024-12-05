@@ -16,7 +16,7 @@ module IO_mapping(
   output [9:0] LEDR, 
   output [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, 
   input [3:0] drumpads,
-  input [15:0] VGA_hCount, VGA_vCount, 
+  input [9:0] VGA_hCount, VGA_vCount, 
   input song_done,
   output [2:0] music_ctrl     // (reset, hps_en, pause)
 );
@@ -100,8 +100,8 @@ module IO_mapping(
       SW_ADDR: rd_data_reg = {6'b0, SW};
       KEY_ADDR: rd_data_reg = {12'b0, KEY};
       DRUMPAD_ADDR: rd_data_reg = {12'b0, drumpads};
-      VGA_HCOUNT_ADDR: rd_data_reg = {VGA_hCount};
-      VGA_VCOUNT_ADDR: rd_data_reg = {VGA_vCount};
+      VGA_HCOUNT_ADDR: rd_data_reg = {6'b0, VGA_hCount};
+      VGA_VCOUNT_ADDR: rd_data_reg = {6'b0, VGA_vCount};
       MUSIC_CTRL_ADDR: rd_data_reg = {13'b0, music_ctrl_reg};
       SONG_STATE_ADDR: rd_data_reg = {15'h0, song_done};
       default: rd_data_reg = 16'b0;

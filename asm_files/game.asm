@@ -14,7 +14,7 @@
 
 `define GAME_SCORE_ADDR $31000
 
-`define GRAPHICS_BASE_ADDR $65500
+`define GRAPHICS_BASE_ADDR $65250
 
 # syncroniztion data structure
 `define CURRENT_WINDOW_ADDR $30000
@@ -23,10 +23,7 @@
 
 # sum of vcount and hcount to trigger refresh
 `define VGA_VCOUNT_REFRESH_VAL $479
-
-# value to load to music_ctrl to pause music
-`define PAUSE_MUSIC $1
-`define RESET_MUSIC $2
+`define TILE_LENGTH $125
 
 # addresses for memory-mapped peripherals
 `define SW_ADDR $65535 
@@ -41,7 +38,7 @@
 `define MUSIC_STATE_ADDR $65526
 
 # number of milliseconds per window
-`define WINDOW_LENGTH_MS $1000
+`define WINDOW_LENGTH_MS $500
 
 `define INIT_SCORE $120
 
@@ -63,34 +60,33 @@
   MOVW `LEDS_ADDR %rA
   STOR %rB %rA
 
-  CALL .reset_game     # reset game (set to initial state)
-  BUC .game_pre_loop
-
-
 ######################## 
-# MAIN LOOPS
+# MAIN LOOP
 ########################
 
-# -----------------------------------------------------
-# listens for indicator to start game
-.game_pre_loop
-  MOVW `BTNS_ADDR %r0     # load buttons addr
-  MOVW `LEDS_ADDR %r1
-  MOVI $1 %rA 
-  STOR %rA %r1
-.__game_pre_loop
-# check for start game 
-  LOAD %r1 %r0    # get buttons
-  ANDI $8 %r1     # get button 3
-  CMPI $0 %r1
-  BNE .__game_pre_loop    # loop again if button wasn't pressed
+# main loop
+.main_loop 
+  CALL .reset_game     # reset game (set to initial state)
+# wait on indicator to start game 
+  CALL .listen_for_start
 # start game
-  CALL .start_game
-  BUC .game_active_loop
+  CALL .start_game 
+# enter main game logic
+  CALL .main_game_logic   # return value indicates if reset or end reached
+  CMPI $0 %rA 
+  BEQ .main_loop    # returned 0 if reset, go to loop start
+# game not reset, end game
+  CALL .end_game
+# wait for game to be reset
+  CALL .listen_for_reset
+  BUC .main_loop
 
 # -----------------------------------------------------
 # main loop for game, while active
-.game_active_loop
+# **ignoring caller-callee conventions because loop above this 
+# doesn't store anything in registers**
+# return 0 if game reset, 1 if game ended
+.main_game_logic
 # load necessary addresses
   MOVW `BTNS_ADDR %r0 
   MOVW `SW_ADDR %r1
@@ -108,32 +104,39 @@
   LOAD %r2 %r5
   CMPI $1 %r2
   BNE .__song_not_done
-# song is done 
-  CALL .end_game
-  BUC .game_end_loop
+# song is done, return 1
+  MOVI $1 %rA
+  RET
 .__song_not_done
 # check for reset 
   LOAD %r2 %r0    # get buttons
   ANDI $2 %r2     # get button 1
   CMPI $0 %r2
   BNE .__game_active_check_for_pause    # button not pressed
-  CALL .reset_game    
-  BUC .game_pre_loop    # go to pre game loop
+  MOVI $0 %rA
+  RET     # reset, return 0
 # check for pause
 .__game_active_check_for_pause
   LOAD %r3 %r1    # get switches
   ANDI $1 %r3     # get first switch only
   CMPI $0 %r3  
-  BEQ .__game_active_no_state_change    # pause not selected
-  CALL .pause_game
-  BUC .game_paused_loop   # go to paused loop
-.__game_active_no_state_change
+  BEQ .__game_active_update_logic   # pause not selected
+# pause selected, pause game
+  CALL .pause_game         
+  CALL .listen_for_unpause_or_reset   # wait for unpause or reset
+  CMPI $0 %rA   
+  BNE .__game_active_game_unpaused
+# game reset
+  RET     # 0 alrady in %rA, indicating reset
+.__game_active_game_unpaused
+  CALL .unpause_game
+.__game_active_update_logic
 # process drumpad inputs
   CALL .drumpads_process_input
-# synnchronize
+# synchronize
   CALL .sync_update   # sync (return val in %rA)
   CMPI $1 %rA   # check if new window
-  BNE .__check_vga  # skip to vga check if there was a new window
+  BNE .__check_vga  # skip to vga check if there was not a new window
 # if there was a new window
   LOAD %rB %r6            # load current window count
   SUBI $1 %rB             # subtract 1 because previous window is one being scored
@@ -155,48 +158,56 @@
 .__skip_visual_refresh
   BUC .__game_active_loop
 
+############################# 
+# LISTENERS
+#############################
+
+# -----------------------------------------------------
+# listens for indicator to start game
+.listen_for_start
+  MOVW `BTNS_ADDR %rA     # load buttons addr
+.__listen_for_start_loop
+# check for start game 
+  LOAD %rB %rA    # get buttons
+  ANDI $8 %rB     # get button 3
+  CMPI $0 %rB
+  BNE .__listen_for_start_loop    # loop again if button wasn't pressed
+  RET 
+
 # -----------------------------------------------------
 # loop to check for unpause or reset while game is paused
-.game_paused_loop
-  MOVW `BTNS_ADDR %r0
-  MOVW `SW_ADDR %r1
-  MOVW `LEDS_ADDR %r2
-  MOVI $4 %rA 
-  STOR %rA %r2
-.__game_paused_loop
+# returns 0 for reset, 1 for unpaused
+.listen_for_unpause_or_reset
+  MOVW `BTNS_ADDR %rA
+  MOVW `SW_ADDR %rB
+.__listen_for_unpause_or_reset_loop
 # check for reset 
-  LOAD %r2 %r0    # get buttons
-  ANDI $2 %r2     # get button 1
-  CMPI $0 %r2     # check if pressed
-  BNE .__game_paused_check_for_unpause  # not pressed
-  CALL .reset_game    
-  BUC .game_pre_loop    # go to pre game loop
+  LOAD %rC %rA    # get buttons
+  ANDI $2 %rC     # get button 1
+  CMPI $0 %rC     # check if pressed
+  BNE .__listen_for_unpause_or_reset_check_for_unpause
+  MOVI $0 %rA     # 0 indicates reset
+  RET
 # check for unpause
-.__game_paused_check_for_unpause
-  LOAD %r3 %r1    # get switches
-  ANDI $1 %r3     # get first switch only
-  CMPI $0 %r3  
-  BNE .__game_paused_loop
-  CALL .unpause_game
-  BUC .game_active_loop
+.__listen_for_unpause_or_reset_check_for_unpause
+  LOAD %rC %rB    # get switches
+  ANDI $1 %rC     # get first switch only
+  CMPI $0 %rC     # check if unset
+  BNE .__listen_for_unpause_or_reset_loop
+  MOVI $1 %rA     # 1 indicates unpaused
+  RET
 
 # -----------------------------------------------------
-# loop for when game has completed
-# listen for restart indicator
-.game_end_loop
-  MOVW `BTNS_ADDR %r0
-  MOVW `LEDS_ADDR %r1
-  MOVI $8 %rA 
-  STOR %rA %r1
-.__game_end_loop
+# listen for reset indicator
+.listen_for_reset
+  MOVW `BTNS_ADDR %rA
+.__listen_for_reset_loop
 # check for reset
-  LOAD %r2 %r0
-  ANDI $2 %r2     # get button 1
-  CMPI $0 %r2
-  BNE .__game_end_loop      # if not pressed
-  CALL .reset_game
-  BUC .game_pre_loop
-
+  LOAD %rB %rA
+  ANDI $2 %rB     # get button 1
+  CMPI $0 %rB
+  BNE .__listen_for_reset_loop
+  RET
 
 ##############################
 # GAME STATE CHANGE PROCEDURES
@@ -211,27 +222,39 @@
   CALL .disable_hps_stream
   CALL .reset_score
   CALL .vga_reset
+  MOVW `LEDS_ADDR %rA 
+  MOVI $1 %rB 
+  STOR %rB %rA
   RET
 
-# starts game (go from freeplay or end to game active)
+# starts game (go from freeplay to game active)
 .start_game 
 # exit freeplay mode
   CALL .enable_hps_stream
   CALL .sync_reset  # reset 
   CALL .reset_score
   CALL .vga_reset
+  MOVW `LEDS_ADDR %rA 
+  MOVI $2 %rB 
+  STOR %rB %rA
   RET
 
 # pauses game (active to paused)
 .pause_game
 # pause music/timer
   CALL .sync_pause
+  MOVW `LEDS_ADDR %rA 
+  MOVI $4 %rB 
+  STOR %rB %rA
   RET 
 
 # unpauses game (paused to active)
 .unpause_game
 # unpause music/timer
   CALL .sync_unpause
+  MOVW `LEDS_ADDR %rA 
+  MOVI $2 %rB 
+  STOR %rB %rA
   RET
 
 # ends game (active to end)
@@ -239,6 +262,9 @@
 # pause music/timer
   CALL .sync_pause
   CALL .vga_reset
+  MOVW `LEDS_ADDR %rA 
+  MOVI $8 %rB 
+  STOR %rB %rA
   RET
 
 ########################### 
@@ -318,6 +344,13 @@
 # set ms of current window start to 0 
   ADDI $1 %rC 
   STOR %rA %rC
+# spin for a while to make sure HPS recieves reset signal
+  MOVW $1000 %rA
+  MOVI $0 %rC
+.__sync_reset_spin 
+  ADDI $1 %rC
+  CMP %rC %rA
+  BLT .__sync_reset_spin
 # unset reset on music playback
   ANDI $11 %rD    # unset reset bit, don't change others
   STOR %rD %rB
@@ -387,75 +420,205 @@
 # GRAPHICS PROCEDURES 
 ##############################
 
-.vga_reset 
-# set colors to white
-  MOVW `GRAPHICS_BASE_ADDR %r5 
-  MOVI $7 %r8
-  ADDI $2 %r5
-  STOR %r8 %r5
-  ADDI $3 %r5
-  STOR %r8 %r5
-  ADDI $3 %r5
-  STOR %r8 %r5
-  ADDI $3 %r5
-  STOR %r8 %r5
-# set initial block sizes
-  MOVW `GRAPHICS_BASE_ADDR %r5 
-  MOVI $0 %r6 
-  MOVI $50 %r7
-# chan 1
-  STOR %r6 %r5
-  ADDI $1 %r5
-  STOR %r7 %r5
-# chan 2
-  ADDI $2 %r5
-  STOR %r6 %r5
-  ADDI $1 %r5
-  STOR %r7 %r5
-# chan. 3
-  ADDI $2 %r5
-  STOR %r6 %r5
-  ADDI $1 %r5
-  STOR %r7 %r5
-# chan 4.
-  ADDI $2 %r5
-  STOR %r6 %r5
-  ADDI $1 %r5
-  STOR %r7 %r5
+.vga_reset
+  SREG %r7    # window count
+  SREG %r8    # lane count
+  SREG %r9
+  MOVI $0 %r7   # window count 0 
+# outer loop for notes/windows 
+.__vga_reset_window_loop
+  MOVI $0 %r8     # lane count 0
+# inner loop for lanes
+.__vga_reset_lane_loop
+# move all values into place
+  MOV %r7 %rA   # window 
+  MOV %r8 %r9   # lane
+  MOVI $0 %rB   # top
+  MOVW $0 %rC   # bottom
+  MOVI $0 %rD   # color
+  CALL ._visual_update_set_tile
+  CMPI $3 %r8   # check agains max lane count
+  BEQ .__vga_reset_window_done
+  ADDI $1 %r8   # next lane
+  BUC .__vga_reset_lane_loop
+# after updating lanes
+.__vga_reset_window_done
+  CMPI $3 %r7   # check against max window count
+  BEQ .__vga_reset_done
+  ADDI $1 %r7     # next window
+  BUC .__vga_reset_window_loop
+.__vga_reset_done
+  LREG %r9
+  LREG %r8
+  LREG %r7
   RET
 
-.vga_refresh
-  SREG %r0 
-  SREG %r1 
-  SREG %r2
+# each pixel corresponds to 4 milliseconds
+# vertical column corresponds to a bit over 4000 milliseconds
+.vga_refresh 
+  SREG %r0  # pointer to window data
+  SREG %r1  
+  SREG %r2  
+  SREG %r3  # length of a tile
+  SREG %r4 
+  SREG %r5
+  SREG %r6 
+  SREG %r7
+  SREG %r8
+  SREG %r9
+  MOVW `WINDOW_DATA_BASE_ADDR %r0
+  MOVW `TILE_LENGTH %r3
+  MOVW `CURRENT_WINDOW_ADDR %r1
+  LOAD %r6 %r1    # load current window
+  MOV %r6 %rB
+  LSHI $2 %rB     # multiply by four to get offset to current window offset
+  ADD %rB %r0     # add offset to base address to get pointer to current window data
+  
+  ADDI $1 %r1     # calc address for ms offset into window
+  LOAD %rC %r1    # load ms offset into window
+  MOVW $400 %r2   # load ms per tile
+  SUB %rC %r2     # subtract ms offset from ms per tile to get ms remaining in tile
+# find dimensions of current tile, bottom of display is always start of first tile
+# end of first tile offset from display end is number of ms remaining in block divided by ms per pixel
+# (4 is the ms per pixel) (divide by 4 by doing right shift by 2) 
+# find offset from bottom (in pixels)
+  LSHI $-2 %r2
+# subtract offset from bottom to get first top position
+  MOVW $450 %r5   # bottom position
+  SUB %r2 %r5     # subtract offset from bottom position to get top position
+# determine if drumpad has been struck, and update color accordingly
+  MOVW `DRUMPAD_COUNT_BASE_ADDR %r8 
+  ADDI $3 %r8     # get address of last drumpad 
+  MOVI $3 %r4     # load 3 for drumpad num
+# loop to update first row of tiles, checking drum pad status on each in order to select a color
+.__visual_update_drumpad_loop
+# check if drumpad hit or not
+  LOAD %r7 %r8
+  CMPI $0 %r7 
+  BEQ .__drumpad_not_hit
+  MOVI $4 %rD   # set color red
+  BUC .__visual_update_drumpad_loop_set_tile
+# drumpad not hit, tile color depends on if it is a note or not
+.__drumpad_not_hit
+  MOV %r6 %rA
+  MOV %r4 %rB
+  CALL .check_if_note_exists
+  CMPI $0 %rA
+  BNE .__visual_update_drumpad_loop_note_exists   # if note exists
+  MOVI $0 %rD     # color black for no note
+  BUC .__visual_update_drumpad_loop_set_tile
+.__visual_update_drumpad_loop_note_exists 
+  MOVI $7 %rD     # color white for note 
+.__visual_update_drumpad_loop_set_tile
+  MOV %r4 %r9   # move drumpad/lane number
+  MOVI $0  %rA    # move window number
+  MOV %r5  %rB     # move tile start position
+  MOVW $450 %rC   # move tile end position
+  CALL ._visual_update_set_tile   # update tile
 
-  MOVW `GRAPHICS_BASE_ADDR %rA
-  LOAD %rB %rA  # y start
-  ADDI $1 %rA
-  LOAD %rC %rA  # y end
+  CMPI $0 %r4
+  BEQ .__visual_update_first_row_done   # if last drumpad processed
+  SUBI $1 %r8        # next drumpad address 
+  SUBI $1 %r4         # next drumpad num (lane num)
+  BUC .__visual_update_drumpad_loop
 
-  MOVW $450 %rD # for comparision
-  CMP %rC %rD   # compare end to end of screen
-  BGT .__reset_block        # if off screen
-# if not off screen:
-  ADDI $1 %rC 
-  ADDI $1 %rB
-  BUC .__vga_refresh_write_new_pos
-.__reset_block
-  MOVI $0 %rB 
-  MOVI $50 %rC
-.__vga_refresh_write_new_pos
-  STOR %rC %rA
-  SUBI $1 %rA
-  STOR %rB %rA
-# wait until vga is in vertical retrace to return(this is not a permanent solution)
-.__vga_refresh_wait_loop 
-  MOVW `VGA_VCOUNT_ADDR %rA
-  LOAD %rB %rA
-  CMPI $0 %rB 
-  BNE .__vga_refresh_wait_loop
-  LREG %r2 
-  LREG %r1 
+.__visual_update_first_row_done
+# loop through next 3 tiles (just have to subtract tile length to get positions)
+  MOVI $1 %r8      # count of windows/tiles, from 1 through 3
+  ADDI $1 %r6     # increment window number
+# nested loops for next tiles and lanes
+.__visual_update_window_loop
+# subtract tile length to get bounds of each tile
+  MOV %r5 %r1   # move previous tile top
+  SUBI $1 %r1   # sub 1 from last tile end to get new tile bottom
+  SUB %r3 %r5   # subtract tile length from last tile top to get new top
+  CMPI $0 %r5   # compare top to 0
+  BLE .__visual_update_window_in_bounds
+  MOVI $0 %r5   # if not in bounds, set top to be 0
+.__visual_update_window_in_bounds
+  MOVI $0 %r4      # count of lanes, from 0 through 3
+# subloop for going through lanes of window
+.__visual_update_lanes_subloop
+# check if there is a note here
+  MOV %r6 %rA 
+  MOV %r4 %rB
+  CALL .check_if_note_exists
+  CMPI $0 %rA
+  BNE .__visual_update_window_loop_note_exists   # if note exists
+  MOVI $0 %rD     # color black for no note
+  BUC .__visual_update_window_loop_set_tile
+.__visual_update_window_loop_note_exists 
+  MOVI $7 %rD     # color white for note 
+.__visual_update_window_loop_set_tile
+  MOV %r4 %r9 
+  MOV %r8 %rA
+  MOV %r5 %rB
+  MOV %r1 %rC
+  CALL ._visual_update_set_tile   # update tile
+  CMPI $3 %r4
+  BEQ .__visual_update_lanes_done
+  ADDI $1 %r4
+  BUC .__visual_update_lanes_subloop
+
+.__visual_update_lanes_done
+  CMPI $3 %r8    # check if last window done
+  BEQ   .__visual_update_end
+  ADDI $1 %r8   # increment tile/window count
+  ADDI $1 %r6     # increment window number
+  BUC .__visual_update_window_loop
+
+.__visual_update_end
+  LREG %r9
+  LREG %r8
+  LREG %r7 
+  LREG %r6 
+  LREG %r5 
+  LREG %r4
+  LREG %r3
+  LREG %r2
+  LREG %r1
+  LREG %r0
+  RET
+
+# %rA: window number
+# %rB: drumpad number
+.check_if_note_exists
+  MOVW `WINDOW_DATA_BASE_ADDR %rC
+  LSHI $2 %rA     # multiply by four to get offset
+  ADD %rA %rC     # add offset to get to proper window
+  ADD %rB %rC     # add drumpad num
+  LOAD %rA %rC
+  CMPI $0 %rA     
+  BEQ .__check_if_note_exists_no_note 
+  MOVI $1 %rA   # 1 indicates note exists
+  BUC .__check_if_note_exists_end
+  .__check_if_note_exists_no_note
+  MOVI $0 %rA   # zero for no note
+  .__check_if_note_exists_end
+  RET
+
+# update a tile 
+# %r9: lane number
+# %rA: tile number
+# %rB: y pos 1 (top)
+# %rC: y pos 2 (bottom)
+# %rD: color
+._visual_update_set_tile
+  SREG %r0
+# load graphics address
+  MOVW `GRAPHICS_BASE_ADDR %r0
+# calculate address (for y pos 1)
+  LSHI $3 %r9   # multiply lane number by 8
+  LSHI $1 %rA   # multiply tile number by 2
+  ADD %r9 %r0   # add offset offset
+  ADD %rA %r0   # add tile offset
+# combine color with y pos 1
+  LSHI $13 %rD    # shift to align 3-bit color high 
+  OR %rD %rB
+# write 
+  STOR %rB %r0
+  ADDI $1 %r0   # add one to address to get y pos 2
+  STOR %rC %r0
   LREG %r0
   RET
 

@@ -31,8 +31,11 @@ module System_no_hps(
   output VGA_VS,
 
 `ifdef ENABLE_HPS
-  input [17:0] hps_audio_data,      // data + parity (song finished, parity, data)
-  output [1:0] hps_audio_req,       // control signals to hps (reset, request)
+  input [15:0] hps_audio_data,      // data + parity (song finished, parity, data)
+  input hps_parity,
+  input hps_song_done,
+  output hps_reset, 
+  output hps_req,
 `endif
   
   // special inputs (for drumpads)
@@ -69,8 +72,8 @@ module System_no_hps(
   wire audio_fifo_empty;
 
   // vga wires 
-  wire [15:0] VGA_hCount; 
-  wire [15:0] VGA_vCount;
+  wire [9:0] VGA_hCount; 
+  wire [9:0] VGA_vCount;
 
   // music playback control 
   wire [2:0] music_ctrl;
@@ -78,11 +81,6 @@ module System_no_hps(
   wire music_reset;
   wire music_hps_en; 
   wire music_pause;
-
-`ifdef ENABLE_HPS 
-  wire song_done;
-  wire hps_req;
-`endif
 
   // drumpad wires
   wire [3:0] drumpads_raw;    // pre processing
@@ -104,9 +102,7 @@ module System_no_hps(
   assign reset_n = KEY[0];
 
 `ifdef ENABLE_HPS
-  assign hps_audio_req[1] = music_reset;
-  assign song_done = hps_audio_data[17];
-  assign hps_audio_req[0] = hps_req;
+  assign hps_reset = music_reset;
 `endif
 
   /**************** 
@@ -133,18 +129,24 @@ module System_no_hps(
   );
 
   // // TODO add hCount, vCount; create interface for reading info from mem
-  // // vga 
-  // VGA vga_control (
-  //   .clk(CLOCK_50), 
-  //   .VGA_RED(VGA_R), 
-  //   .VGA_GREEN(VGA_G), 
-  //   .VGA_BLUE(VGA_B), 
-  //   .VGA_CLK(VGA_CLK), 
-  //   .VGA_BLANK_N(VGA_BLANK_N), 
-  //   .VGA_HS(VGA_HS), 
-  //   .VGA_SYNC_N(VGA_SYNC_N),
-  //   .VGA_VS(VGA_VS)
-  // );
+  // vga 
+  VGA2 vga_control (
+    .clk(CLOCK_50), 
+    .reset(1'b0),
+    .VGA_RED(VGA_R), 
+    .VGA_GREEN(VGA_G), 
+    .VGA_BLUE(VGA_B), 
+    .VGA_CLK(VGA_CLK), 
+    .VGA_BLANK_N(VGA_BLANK_N), 
+    .VGA_HS(VGA_HS), 
+    .VGA_VS(VGA_VS),
+    .VGA_SYNC_N(VGA_SYNC_N),
+    .memory_read_data(vga_controller_data), 
+    .memory_address(vga_controller_addr), 
+    .memory_read_enable(),
+    .hCount(VGA_hCount), 
+    .vCount(VGA_vCount)
+  );
 
   // TODO add logic to read from HPS audio stream
   // TODO add interface for waiting on reads depending on the read data valid signal
@@ -159,7 +161,8 @@ module System_no_hps(
     .mem_addr(audio_mixer_addr), 
 
 `ifdef ENABLE_HPS
-    .hps_audio_data_and_parity(hps_audio_data[16:0]), 
+    .hps_audio_data(hps_audio_data), 
+    .hps_parity(hps_parity),
     .hps_req(hps_req),
     .hps_en(music_hps_en),
 `endif
@@ -203,7 +206,7 @@ module System_no_hps(
   );
 
   // Memory and IO mapping 
-  MemorySystem #(CPU_ADDR_WIDTH, "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/music_ctrl.dat") mem_system (
+  MemorySystem #(CPU_ADDR_WIDTH, "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/game_with_data.dat") mem_system (
     .clk(CLOCK_50), 
     .reset_n(reset_n), 
 
@@ -221,7 +224,7 @@ module System_no_hps(
     .VGA_vCount(VGA_vCount),
     .music_ctrl(music_ctrl), 
 `ifdef ENABLE_HPS
-    .song_done(song_done),
+    .song_done(hps_song_done),
 `else 
     .song_done(1'b0),
 `endif

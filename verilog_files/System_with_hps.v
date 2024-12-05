@@ -179,18 +179,21 @@ module System_with_hps (
   wire [27:0] stm_hw_events;
   wire        fpga_clk_50;
 
-  wire [23:0] hps_audio_data; 
-  wire [7:0] hps_audio_req;
+  wire [15:0] hps_audio_data; 
+  wire hps_audio_req;
+  wire hps_audio_parity;
+  wire hps_audio_reset;
+  wire hps_song_done;
 
   // connection of internal logics
   // assign LEDR[9:1] = fpga_led_internal;
-  assign stm_hw_events    = {{4{1'b0}}, SW, LEDR[9:1], fpga_debounced_buttons};
+  // assign stm_hw_events    = {{4{1'b0}}, SW, LEDR[9:1], fpga_debounced_buttons};
   assign fpga_clk_50=CLOCK_50;
 
-  assign GPIO_0[0] = AUD_XCK; 
-  assign GPIO_0[1] = AUD_BCLK; 
-  assign GPIO_0[2] = AUD_DACLRCK;
-  assign GPIO_0[3] = AUD_DACDAT; 
+  // assign GPIO_0[0] = AUD_XCK; 
+  // assign GPIO_0[1] = AUD_BCLK; 
+  // assign GPIO_0[2] = AUD_DACLRCK;
+  // assign GPIO_0[3] = AUD_DACDAT; 
   
   //=======================================================
   //  Structural coding
@@ -282,12 +285,15 @@ module System_with_hps (
         .hps_0_hps_io_hps_io_gpio_inst_GPIO61  ( HPS_GSENSOR_INT),          //                               .hps_io_gpio_inst_GPIO61
         //HPS reset output 
     .audio_data_pio_external_connection_export (hps_audio_data),
+    .audio_parity_pio_external_connection_export (hps_audio_parity),
     .audio_req_pio_external_connection_export (hps_audio_req),
+    .audio_reset_pio_external_connection_export (hps_audio_reset),
+    .song_done_pio_external_connection_export (hps_song_done),
     .hps_0_h2f_reset_reset_n               ( hps_fpga_reset_n ),                //                hps_0_h2f_reset.reset_n
-    .hps_0_f2h_cold_reset_req_reset_n      (~hps_cold_reset ),      //       hps_0_f2h_cold_reset_req.reset_n
-     .hps_0_f2h_debug_reset_req_reset_n     (~hps_debug_reset ),     //      hps_0_f2h_debug_reset_req.reset_n
-     .hps_0_f2h_stm_hw_events_stm_hwevents  (stm_hw_events ),  //        hps_0_f2h_stm_hw_events.stm_hwevents
-     .hps_0_f2h_warm_reset_req_reset_n      (~hps_warm_reset ),      //       hps_0_f2h_warm_reset_req.reset_n
+    // .hps_0_f2h_cold_reset_req_reset_n      (~hps_cold_reset ),      //       hps_0_f2h_cold_reset_req.reset_n
+    //  .hps_0_f2h_debug_reset_req_reset_n     (~hps_debug_reset ),     //      hps_0_f2h_debug_reset_req.reset_n
+     // .hps_0_f2h_stm_hw_events_stm_hwevents  (stm_hw_events ),  //        hps_0_f2h_stm_hw_events.stm_hwevents
+    //  .hps_0_f2h_warm_reset_req_reset_n      (~hps_warm_reset ),      //       hps_0_f2h_warm_reset_req.reset_n
 
     );
 
@@ -385,8 +391,11 @@ System_no_hps sys (
   .VGA_HS(VGA_HS), 
   .VGA_SYNC_N(VGA_SYNC_N), 
   .VGA_VS(VGA_VS),
-  .hps_audio_data(hps_audio_data[17:0]),
-  .hps_audio_req(hps_audio_req[1:0]),
+  .hps_audio_data(hps_audio_data),
+  .hps_parity(hps_audio_parity),
+  .hps_song_done(hps_song_done),
+  .hps_reset(hps_audio_reset),
+  .hps_req(hps_audio_req),
   .GPIO_1(GPIO_1)
 );
 

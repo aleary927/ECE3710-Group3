@@ -19,7 +19,8 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
   output [ADDR_WIDTH - 1:0] mem_addr,
 
 `ifdef ENABLE_HPS
-  input [16:0] hps_audio_data_and_parity, 
+  input [15:0] hps_audio_data,
+  input hps_parity,
   input hps_en,
   output hps_req,
 `endif
@@ -35,16 +36,16 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
 
   // length of each sample
   localparam  [ADDR_WIDTH - 1:0]
-              SAMPLE0_LENGTH      = 17'h17da, 
-              SAMPLE1_LENGTH      = 17'h1bea, 
-              SAMPLE2_LENGTH      = 17'h208a, 
-              SAMPLE3_LENGTH      = 17'h12e4;
+              SAMPLE0_LENGTH      = 17'h6995, 
+              SAMPLE1_LENGTH      = 17'h60df, 
+              SAMPLE2_LENGTH      = 17'h1f29, 
+              SAMPLE3_LENGTH      = 17'h2752;
             
   // base memory addresses of each sample
   localparam  [ADDR_WIDTH - 1:0] 
-              SAMPLE0_BASE_ADDR   = 2**16,
+              SAMPLE0_BASE_ADDR   = 0,
               SAMPLE1_BASE_ADDR   = SAMPLE0_BASE_ADDR + SAMPLE0_LENGTH, 
-              SAMPLE2_BASE_ADDR   = SAMPLE1_BASE_ADDR + SAMPLE1_LENGTH, 
+              SAMPLE2_BASE_ADDR   = 2**16, 
               SAMPLE3_BASE_ADDR   = SAMPLE2_BASE_ADDR + SAMPLE2_LENGTH;
 
   // max addr of each sample
@@ -86,7 +87,6 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
   wire new_sample_parity;
   reg sample_req;
   reg hps_sample_is_ready;
-  wire [15:0] hps_audio_data;
 `endif
 
   reg [DATA_WIDTH - 1:0] complete_sample;   // finished sample
@@ -239,7 +239,7 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
     end
   end
   
-  // assign fifo_data = complete_sample;
+  assign fifo_data = complete_sample;
   assign fifo_wr_en = (state == SAMPLE_WRITE);
   
   assign mem_addr = addrs[table_line];
@@ -249,8 +249,7 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
   // outputs for hps
 `ifdef ENABLE_HPS
   assign hps_req = sample_req;
-  assign hps_audio_data = hps_audio_data_and_parity[15:0];
-  assign new_sample_parity = hps_audio_data_and_parity[16];
+  assign new_sample_parity = hps_parity;
 `endif
 
   // find next available playback table slot
@@ -301,13 +300,14 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
     end
   endgenerate
 
-  Ditherer dither (
-    .clk(clk), 
-    .reset_n(reset_n), 
-    .en(fifo_wr_en), 
-    .signal_in(complete_sample), 
-    .signal_out(fifo_data)
-  );
+  // Ditherer dither (
+  //   .clk(clk), 
+  //   .reset_n(reset_n), 
+  //   .en(fifo_wr_en), 
+  //   .signal_in(complete_sample), 
+  //   .signal_out(fifo_data)
+  // );
+
 
 
 endmodule

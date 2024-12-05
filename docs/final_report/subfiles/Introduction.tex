@@ -1,5 +1,26 @@
-\documentclass{subfile} 
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{subfiles}
 
-\begin{document} 
-  Intro here.
+\begin{document}
+
+Rhythm games are a popular genre of interactive entertainment, challenging players to synchronize their inputs with visual and auditory cues. This project, titled \textit{Music Tile}, implements a rhythm game on the FPGA DE10 board, integrating both hardware and software components to create an engaging and interactive experience.
+
+\subsection{Background}
+
+Rhythm games, such as \textit{Guitar Hero} and \textit{Dance Dance Revolution}, have gained massive popularity due to their engaging gameplay and reliance on precise timing. However, implementing such a game using FPGA systems offers unique challenges, including real-time signal processing and hardware-based input handling, which allow for low-latency, highly responsive gameplay.
+
+\subsection{Project Goals}
+
+The primary goal of this project was to implement a fully functional rhythm game on the DE10 board. The game includes:
+\begin{itemize}
+    \item A VGA-based visual interface for displaying falling notes.
+    \item Input handling using four physical drum pads.
+    \item Accurate timing synchronization between notes and user inputs.
+\end{itemize}
+
+\subsection{Significance}
+
+By utilizing FPGA technology, this project leverages the low-latency, real-time processing capabilities that are essential for rhythm games. The ability to design custom hardware for input handling and timing synchronization ensures a highly responsive gameplay experience, a key feature that cannot be easily achieved with general-purpose processors.
+
 \end{document}

@@ -189,6 +189,7 @@ def precompile(filename):
     f.seek(0)
 
     for line in f:
+        line = line.split('#')[0]
         parts = replaceMacros(line.split())
         if len(parts) > 0 and parts[0] == 'CALL':
             if len(parts) < 2:
@@ -332,6 +333,8 @@ def assemble(filename: str):
                             parsed_imm = parsed_imm & 0xFF
                         elif instr == 'LUI':
                             parsed_imm = (parsed_imm & 0xFF00) >> 8
+                        elif instr == 'ORI': 
+                            parsed_imm = (parsed_imm & 0xFF)
                     else:
                         sys.exit(f'ERROR: Badly formatted imm on line {i+1} in instruction {x}'
                                 +f'\n\tExpected imm to start with: \'$\', but found: \'{imm[0]}\'')

@@ -1,44 +1,45 @@
 \documentclass{subfile}
 
+
 \begin{document}
-\section{Results and Evaluation}
+  \subsection{Results and Evaluation}
 
-The implementation of the VGA module successfully rendered visual elements on a VGA display using the FPGA. This module integrates pixel synchronization and glyph generation.
+  The implementation of the VGA module successfully rendered visual elements on a VGA display using the FPGA. This module integrates pixel synchronization and glyph generation.
 
-The `bitGen_Glyph` submodule generates these synchronizations and works with the `glyph_rom` module which provides compressed pixel data for the glyphs.
+  The `bitGen\_Glyph` submodule generates these synchronizations and works with the `glyph\_rom` module which provides compressed pixel data for the glyphs.
 
-\subsection{Memory Management}
-The memory interface retrieves tile data and dynamically updates the tile positions based on memory contents. The memory-mapped address space was configured to start at a particular address, with each block's color and position encoded in the 16-bit data structure. 
+  \subsection{Memory Management}
+  The memory interface retrieves tile data and dynamically updates the tile positions based on memory contents. The memory-mapped address space was configured to start at a particular address, with each block's color and position encoded in the 16-bit data structure. 
 
-\subsection{Glyph Compression and Rendering}
-The `glyph_rom` was structured as follows:
-\begin{itemize}
-    \item Glyph rows were stored sequentially in a shared array with offsets indicating each character's starting position.
-    \item Each row uses a 12-bit representation to maintain sufficient resolution for character rendering.
-\end{itemize}
+  \subsection{Glyph Compression and Rendering}
+  The `glyph\_rom` was structured as follows:
+  \begin{itemize}
+      \item Glyph rows were stored sequentially in a shared array with offsets indicating each character's starting position.
+      \item Each row uses a 12-bit representation to maintain sufficient resolution for character rendering.
+  \end{itemize}
 
-\subsection{Dynamic Score Rendering}
-The score display system dynamically converts the current score into its individual digits and maps them to their corresponding glyphs, ensuring that the displayed score reflects the game's state to the player. 
+  \subsection{Dynamic Score Rendering}
+  The score display system dynamically converts the current score into its individual digits and maps them to their corresponding glyphs, ensuring that the displayed score reflects the game's state to the player. 
 
-\subsection{Synchronization and Display Quality}
-The module achieved a stable and synchronized non-flicker display. Dynamic elements such as moving tiles and changing scores behaved as expected without any noticeable latency or glitches.
+  \subsection{Synchronization and Display Quality}
+  The module achieved a stable and synchronized non-flicker display. Dynamic elements such as moving tiles and changing scores behaved as expected without any noticeable latency or glitches.
 
 
-\subsection{Challenges and Future Improvements}
-While the module performed effectively, some challenges were identified:
-\begin{itemize}
-    \item \textbf{Memory Consumption:} The glyph table occupies a substantial portion of the available RAM. 
-    \item \textbf{Scaling:} The current design is made for a 640x480 resolution. Higher resolutions may require further optimization.
-    \item \textbf{Glyph Resolution:} Future designs could explore variable-width/height glyphs, potentially improving text rendering quality further.
-\end{itemize}
+  \subsection{Challenges and Future Improvements}
+  While the module performed effectively, some challenges were identified:
+  \begin{itemize}
+      \item \textbf{Memory Consumption:} The glyph table occupies a substantial portion of the available RAM. 
+      \item \textbf{Scaling:} The current design is made for a 640x480 resolution. Higher resolutions may require further optimization.
+      \item \textbf{Glyph Resolution:} Future designs could explore variable-width/height glyphs, potentially improving text rendering quality further.
+  \end{itemize}
 
-Future iterations could include:
-\begin{itemize}
-    \item Optimized memory access protocols.
-    \item Enhanced glyph resolution.
-    \item Modular design for scaling across different display resolutions.
-\end{itemize}
+  Future iterations could include:
+  \begin{itemize}
+      \item Optimized memory access protocols.
+      \item Enhanced glyph resolution.
+      \item Modular design for scaling across different display resolutions.
+  \end{itemize}
 
-\subsection{Conclusion}
-Concluding, the final VGA module consists of the integration of compressed glyph data, real-time memory-mapped updates, and stable synchronization. 
+  \subsection{Conclusion}
+  Concluding, the final VGA module consists of the integration of compressed glyph data, real-time memory-mapped updates, and stable synchronization. 
 \end{document}

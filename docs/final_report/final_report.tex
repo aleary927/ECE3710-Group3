@@ -13,14 +13,24 @@
 }
 
   \author{
-  {Aidan Leary, Hayoung Im, Trea Hillstead, Woojin Lee}
+  {Aidan Leary, Hayoung Im, Trae Hillstead, Woojin Lee}
   }
 
 
   \maketitle
 
   \begin{abstract}
-The Musical Tile project focuses on developing a rhythm game on the FPGA DE10 board, utilizing four physical drum pads as input devices. Players interact with falling notes displayed on a VGA screen by synchronizing their inputs with visual cues, providing a real-time gaming experience. This project integrates hardware and software components, leveraging the FPGA's low-latency and real-time processing capabilities for precise timing synchronization and responsive gameplay. Key results include the successful implementation of core game features like note generation, input detection, and timing synchronization, as well as plans for future enhancements such as audio integration, difficulty levels, and a multi-player mode. The project demonstrates the potential of FPGA technology in gaming applications, offering a unique and engaging rhythm game experience.
+The Musical Tile project focuses on developing a rhythm game on the Terasic DE1-SoC FPGA 
+development board, 
+utilizing four physical drum pads as input devices. Players interact with falling notes 
+displayed on a VGA screen by synchronizing their inputs with visual cues, providing a 
+real-time gaming experience. This project integrates hardware and software components, 
+leveraging the FPGA's low-latency and real-time processing capabilities for precise 
+timing synchronization and responsive gameplay. Key results include the successful 
+implementation of core game features like audio mixing and playback, input detection, and 
+timing synchronization.
+This project demonstrates the potential of FPGA technology in gaming applications, 
+offering a unique and engaging rhythm game experience.
   \end{abstract}
 
 
@@ -35,28 +45,28 @@ The Musical Tile project focuses on developing a rhythm game on the FPGA DE10 bo
   \section{CPU}
   \subfile{subfiles/CPU.tex}
 
-  % explanation of how the HPS integration works
-  \section{HPS Integration}
-  \subfile{subfiles/HPS.tex}
-
-  % explanation of VGA system. 
-  \section{Graphics}
-  \subfile{subfiles/Graphics.tex}
-
   % in-depth explanation of all audio components
   \section{Audio Subsystem}
   \subfile{subfiles/AudioSubsys}
 
+  % explanation of how the HPS integration works
+  \section{HPS Integration}
+  \subfile{subfiles/HPS.tex}
+
   % memory mapping
   \section{Memory Mapping}
   \subfile{subfiles/MemMapping.tex}
+
+  % explanation of VGA system. 
+  \section{Graphics}
+  \subfile{subfiles/Graphics.tex} 
 
   % drumpad circuitry, processing, etc
   \section{Drum Pads}
   \subfile{subfiles/Drumpads.tex}
 
   % design of the software and how the cpu interacts with and controls the rest of the hardware
-  \section{Music Tiles Application}
+  \section{Software}
   \subfile{subfiles/Application.tex}
 
   \section{Results}

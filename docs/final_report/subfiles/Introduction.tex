@@ -3,20 +3,32 @@
 \usepackage{subfiles}
 
 \begin{document}
-
-Rhythm games are a popular genre of interactive entertainment, challenging players to synchronize their inputs with visual and auditory cues. This project, titled \textit{Music Tile}, implements a rhythm game on the FPGA DE10 board, integrating both hardware and software components to create an engaging and interactive experience.
+Rhythm games are a popular genre of interactive entertainment, challenging players to
+maintain a consistent rhythm by providing them with visual and auditory queues to 
+interact with. 
+This project, titled \textit{Music Tiles}, implements a rhythm game on the Terasic DE1-SoC board,
+integrating both hardware and software components to create an engaging and interactive experience.
+More specifically, a custom-built CPU, using the ECE 3710 architecture (based on CR16) is 
+implemented in the FPGA fabric and is used as the controller for this game.
+Additionally, several other supporting hardware components such as audio mixing and 
+playback, and a VGA graphics controller are designed and used to bring the game to life. 
 
 \subsection{Background}
 
-Rhythm games, such as \textit{Guitar Hero} and \textit{Dance Dance Revolution}, have gained massive popularity due to their engaging gameplay and reliance on precise timing. However, implementing such a game using FPGA systems offers unique challenges, including real-time signal processing and hardware-based input handling, which allow for low-latency, highly responsive gameplay.
+Rhythm games, such as \textit{Guitar Hero} and \textit{Dance Dance Revolution}, have 
+gained massive popularity due to their engaging gameplay and reliance on precise timing. 
+However, implementing such a game using FPGA systems offers unique challenges, 
+including real-time signal processing and input handling 
+of external hardware devices, which allow for low-latency, highly responsive gameplay.
 
 \subsection{Project Goals}
-
-The primary goal of this project was to implement a fully functional rhythm game on the DE10 board. The game includes:
+The primary goal of this project was to implement a fully functional rhythm game on an FPGA 
+platform. The game includes:
 \begin{itemize}
-    \item A VGA-based visual interface for displaying falling notes.
+    \item A VGA-based visual interface for displaying notes visually.
     \item Input handling using four physical drum pads.
-    \item Accurate timing synchronization between notes and user inputs.
+    \item Audio mixing and playback.
+    \item Accurate timing synchronization between notes, user inputs, and a backing audio soundtrack.
 \end{itemize}
 
 \subsection{Significance}

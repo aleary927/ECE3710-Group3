@@ -1,7 +1,8 @@
 \documentclass{subfile} 
 
 \begin{document}
-  The in this design includes all baseline instructions outlined in the ISA document. 
+  The CPU in this design includes all baseline instructions outlined in the ECE 3710 
+  ISA (instruction set architecture) documentation.
   In addition to the baseline instructions, other standard CR16 instructions are 
   included in the CPU including all shift instructions, and multiply instructions. 
   These instructions are included for arithmetic convenience.
@@ -16,8 +17,8 @@
   \end{itemize}
 
   The point of including this millisecond counter is due to the intended application being
-  very dependent on maintaining good timing. 
+  very dependent on keeping track of time in the CPU. 
   The timer allows the CPU to keep track of the current position within an audio track, 
-  which is how it decides when to take certain actions, such as making a tile appear on 
+  which is how it decides when to take certain actions, such as drawing a tile on 
   the display.
 \end{document}

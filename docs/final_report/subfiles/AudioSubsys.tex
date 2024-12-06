@@ -3,33 +3,36 @@
 \begin{document}
   Due to the audio-driven nature of the application of choice, the audio subsystem
   was a very important part of the overall design. 
-  The overall goal of this subsystem is to be able to play back samples triggered 
+  The goal of this subsystem is to be able to play back samples triggered 
   by an input, mix them with an audio stream coming from the HPS, and write this 
   data out to the on-board audio codec.
   The subsystem can be broken down into three main parts, the audio mixer, the ROM, and the 
   codec controller.
 
   \subsection{Audio Mixer}
-  The audio mixer is responsible for keeping track of in-progress samples,
+  The audio mixer is responsible for keeping track of in-progress sounds,
   and mixing multiple samples together to create a final sample to write to the codec.
-  In order to track these samples, it must register new samples based on trigger 
+  In order to track these sounds, it must register new sounds based on trigger 
   signals, in this case from the drum pads.
 
-  Since there are four drum pads, there are four samples, each with a unique base 
+  Since there are four drum pads, there are four sounds, each with a unique base 
   address and end address. 
-  Depending on the sample that was triggered, the corresponding base and end address are recorded. 
+  Depending on the sound that was triggered, the corresponding base and end address are recorded. 
   The base address is recorded as the current address, which is incremented each time a new 
   sample is written to the codec.
 
   In order to generate a complete sample to write out to the codec, the mixer must read the current 
-  sample from memory for each sample in progress, and add them all together.
-  In addition, the mixer must also request a new sample from the HPS, and add it to the other samples.
+  sample from memory for each sound in progress, and add them all together.
+  In addition, the mixer must also request a new sample from the HPS, and add it to the other 
+  samples.
 
-  The mixer allows for N number of samples to be in progress at once. 
-  This means that many versions of the same sample or difference samples can be in progress at once.
+  The mixer allows for N number of sounds to be in progress at once. 
+  This means that many versions of the same sound or different sounds can be in progress at once.
   In this case, the mixer is setup for 16 concurrent samples.
 
-  A new sample is initiated by a signal from the codec which indicates that it's fifo buffer is not full. 
+  A new sample is initiated by a signal from the codec which indicates that it's FIFO (first 
+  in first out) 
+  buffer is not full. 
   Basically, the mixer is always trying to keep the codec supplied with data. 
   This setup where the codec is effectively requesting data ensures that there are no lapses in data, 
   maintaining smooth and consistent audio playback
@@ -42,11 +45,13 @@
   run-time, so there was no need to include them in the CPUs memory.
 
   % TODO reference to cv mem docs for max block mem address space
-  In the Cyclone V memory documentation, the valid values for a block memory size max out at a 
-  16 bit address space, so it made the most sense to use 16-bit address space blocks of 
-  memory/ROM and link them together manually. 
+  In the Cyclone V memory documentation, the valid values for the size of a single block of 
+  on-chip block memory max out at a
+  16 bit address space. 
+  This means that it made the most sense to use multiple 16-bit address space blocks of 
+  memory/ROM and link them together manually when more space is needed. 
   Using this approach, a ROM with a 17 bit address space was created that could fit within 
-  the resource limits of the FPGA even including the CPU's own 16 bit memory.
+  the resource limits of the FPGA, even including the CPU's own 16 bit memory.
 
   \subsection{Codec Controller} 
   The DE1-SoC board includes a Wolfson WM8731 audio codec. 
@@ -55,36 +60,35 @@
 
   This codec is a very versatile chip, meaning that there is a lot of configurations 
   available.
-  There are about 10 registers internal to the codec that can be written to via I2C, 
+  There are ten configuration registers internal to the codec that can be written to via I2C, 
   allowing for things such as sample rate, volume, and data path configuration.
-  In the case of this design, the audio codec is configured for 44.1 kHz playback.
+  In the case of this design, the audio codec is configured for 48 kHz playback.
 
   Another requirement to use the codec is to instantiate a PLL on the FPGA. 
-  This is necessary because the codec requires extremely specific frequencies 
-  (11.2896 MHz in this case). 
+  This is necessary because the codec requires extremely specific frequencies in order 
+  to keep the correct sampling rate (18.2896 MHz in this case).   % TODO change freq
   Luckily, Quartus makes this extremely easy due to a preconfigured audio PLL being 
   available as IP in the platform designer.
 
   The Wolfson WM8731 uses the I2S protocol for sending data.
-  This is a serial protocol that uses a select signal to indicate which channel 
-  (left or right) is active.
+  This is a serial protocol that uses a select signal to indicate if the left or right 
+  channel is currently being transferred.
   I2S also uses a bit clock to indicate when each bit of data is recorded, and a data signal 
-  to send that actual data. 
+  to send that data. 
   Data is recorded on the rising edge of the bit clock, so on the falling edge the 
   next bit can be made available on the data line.
 
   The data serializer used in this design is designed with mono audio in mind, 
   as it writes the same sample during both the left and right cycles.
-  The most important aspect of the serializer is the fifo (first in first out) buffer. 
-  This buffer is necessary so that the codec can be provided with a steady stream of data. 
+  The most important aspect of the serializer is the FIFO buffer. 
+  This buffer is necessary so that the codec can be provided with a steady stream of data, 
+  even in the event that the mixer takes longer than usual to produce a sample. 
 
   An interesting thing to note about the setup of this codec on the board is that the 
-  board's lineout output is connected to the headphone out of the codec while it actually 
-  has an actual lineout. 
+  board's lineout output is connected to the headphone out of the codec, even though the 
+  codec has an actual lineout. 
   This is clear because changing the register values of the codec which amplify the 
   headphone output change the volume output of the boards "lineout" output.
   This is actually quite a serious finding because lineouts and headphone outs 
-  are intended to drive far difference load impedance's.
-
-
+  are intended to drive far difference load impedances.
 \end{document}

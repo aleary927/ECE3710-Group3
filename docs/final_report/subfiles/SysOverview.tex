@@ -3,18 +3,31 @@
 \begin{document}
   This project involves several subsystems which all have to work together to create a 
   cohesive final system. 
-  The main components are as follows: CPU, audio subsystem, VGA subsystem, memory subsystem, 
-  and HPS.
+  The main components are as follows: 
+  \begin{itemize} 
+  \item CPU 
+  \item Audio subsystem 
+  \item VGA subsystem 
+  \item Memory subsystem, 
+  \item HPS (hard processor system)
+  \end{itemize}
 
   The CPU is the main controller, controlling the rest of the components via a memory-mapped interface. 
-  The CPU is able to pause audio, reset audio, read inputs from the drum pads, write data to be read 
-  by the VGA controller, and read and write from all the standard board peripherals (switches, leds, seven 
-  segment displays, buttons).
+  The CPU has control of the audio, the ability to share data with the VGA controller, and access 
+  to all board peripherals via memory-mapping.
+  On the audio front, the CPU is able to pause audio, reset the soundtrack, and disable the 
+  soundtrack as to only play sound effects.
+  The board peripherals which the CPU can access include all on-board leds, buttons, and switches, 
+  as well as the drum pad inputs.
 
   The HPS is used purely to stream a song to the FPGA. 
-  Songs are quit a bit of data, so it is necessary to store the song external to the FPGA. 
+  A full song is a substantial amount of data, so it is necessary to store the song external to 
+  the FPGA fabric. 
   The HPS is a very nice solution because it allows for data to be read from a sound file hosted 
   on the sd-card, removing the need for extra external hardware.
+  The VGA and audio subsystems take care of outputting the proper signals to the VGA 
+  controller and audio codec that are on-board the DE1-SoC board.
+  The Memory subsystem contains memory shared between the CPU and VGA controller, and 
+  also includes all memory-mapping.
 
-  The roles of the rest of the subsystems will receive an in-depth explanation in the following sections.
 \end{document}

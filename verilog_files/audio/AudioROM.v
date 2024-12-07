@@ -34,30 +34,16 @@ module AudioROM #(SAMPLE0_FILE, SAMPLE1_2_FILE) //, SAMPLE3_FILE)
   * Modules 
   ****************************/
 
-  // Mux3 #(DATA_WIDTH) data_sel_mux (
-  //   .sel(rom_sel), 
-  //   .a(rom0_data), 
-  //   .b(rom1_data), 
-  //   .c(rom_small_data), 
-  //   .out(data)
-  // );
-
   ROM #(DATA_WIDTH, ADDR_WIDTH, SAMPLE0_FILE) rom0 (
     .clk(clk), 
     .addr(rom_addr), 
     .data(rom0_data)
   );
 
-  ROM #(DATA_WIDTH, ADDR_WIDTH, SAMPLE1_2_FILE) rom1 (
+  ROM #(DATA_WIDTH, ADDR_WIDTH - 1, SAMPLE1_2_FILE) rom1 (
     .clk(clk), 
-    .addr(rom_addr), 
+    .addr(rom_addr[ADDR_WIDTH - 2:0]), 
     .data(rom1_data)
   );
-
-  // ROM #(DATA_WIDTH, SMALLROM_ADDR_WIDTH, SAMPLE3_FILE) rom_small (
-  //   .clk(clk), 
-  //   .addr(rom_small_addr), 
-  //   .data(rom_small_data)
-  // );
 
 endmodule

@@ -28,6 +28,7 @@ module CPU_system_basic(
   wire mem_wr_en; 
   wire [15:0] mem_wr_data;
   wire [15:0] mem_addr;
+  wire mem_rd_clk;
 
   reg [15:0] io_rd_data;
   wire [15:0] mem_rd_data_to_cpu;
@@ -51,9 +52,17 @@ module CPU_system_basic(
     .mem_wr_data(mem_wr_data)
   );
 
+  MemPLL_0002 mem_pll(
+    .refclk(CLOCK_50), 
+    .rst(1'b0), 
+    .outclk_0(mem_rd_clk), 
+    .locked()
+  );
+
   // Memory
-  Memory #(16, 2**16, "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/msc_test.dat") mem (
-    .clk(CLOCK_50),
+  Memory #(16, 2**16, "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/fibn.dat") mem (
+    .wr_clk(CLOCK_50),
+    .rd_clk(mem_rd_clk),
     .wr_en1(mem_wr_en), 
     .addr1(mem_addr), 
     .wr_data1(mem_wr_data), 

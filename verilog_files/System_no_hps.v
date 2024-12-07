@@ -128,29 +128,6 @@ module System_no_hps(
     .drumpads_debounced(drumpads_debounced)
   );
 
-  // // TODO add hCount, vCount; create interface for reading info from mem
-  // vga 
-  VGA2 vga_control (
-    .clk(CLOCK_50), 
-    .reset(1'b0),
-    .VGA_RED(VGA_R), 
-    .VGA_GREEN(VGA_G), 
-    .VGA_BLUE(VGA_B), 
-    .VGA_CLK(VGA_CLK), 
-    .VGA_BLANK_N(VGA_BLANK_N), 
-    .VGA_HS(VGA_HS), 
-    .VGA_VS(VGA_VS),
-    .VGA_SYNC_N(VGA_SYNC_N),
-    .memory_read_data(vga_controller_data), 
-    .memory_address(vga_controller_addr), 
-    .memory_read_enable(),
-    .hCount(VGA_hCount), 
-    .vCount(VGA_vCount)
-  );
-
-  // TODO add logic to read from HPS audio stream
-  // TODO add interface for waiting on reads depending on the read data valid signal
-  // TODO add ability to pause and reset 
   // audio mixer/controller
   AudioMixer #(16, AUDIO_ADDR_WIDTH, 16) mixer (
     .clk(CLOCK_50), 
@@ -177,7 +154,7 @@ module System_no_hps(
   AudioCodec #(16) codec (
     .clk(CLOCK_50), 
     .reset_n(reset_n), 
-    .reset_config_n(reset_n), 
+    // .reset_config_n(reset_n), 
     .en(~music_pause), 
     .audio_data(mixed_audio_data), 
 
@@ -196,8 +173,8 @@ module System_no_hps(
   );
 
   AudioROM #(
-    "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/stink01.dat", 
-    "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/stink23.dat" 
+    "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/bassCB.dat", 
+    "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/snare_lowHigh.dat" 
   ) 
   audio_rom (
     .clk(CLOCK_50), 
@@ -236,6 +213,27 @@ module System_no_hps(
 
     .port2_addr(vga_controller_addr), 
     .port2_rd_data(vga_controller_data)
+  );
+
+ 
+  // // TODO add hCount, vCount; create interface for reading info from mem
+  // vga 
+  VGA vga_control (
+    .clk(CLOCK_50), 
+    .reset(1'b0),
+    .VGA_RED(VGA_R), 
+    .VGA_GREEN(VGA_G), 
+    .VGA_BLUE(VGA_B), 
+    .VGA_CLK(VGA_CLK), 
+    .VGA_BLANK_N(VGA_BLANK_N), 
+    .VGA_HS(VGA_HS), 
+    .VGA_VS(VGA_VS),
+    .VGA_SYNC_N(VGA_SYNC_N),
+    .memory_read_data(vga_controller_data), 
+    .memory_address(vga_controller_addr), 
+    .memory_read_enable(),
+    .hCount(VGA_hCount), 
+    .vCount(VGA_vCount)
   );
 
 endmodule

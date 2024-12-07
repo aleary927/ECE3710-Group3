@@ -63,6 +63,7 @@ module DrumPadDemo(
     .clk(CLOCK_50), 
     .reset_n(reset_n),
     .reset_config_n(KEY[1]),
+    .en(1'b1),
     .audio_data(fifo_data), 
     .I2C_SDAT(FPGA_I2C_SDAT), 
     .I2C_SCLK(FPGA_I2C_SCLK), 
@@ -71,9 +72,9 @@ module DrumPadDemo(
     .AUD_XCK(AUD_XCK), 
     .AUD_DACDAT(AUD_DACDAT), 
     .fifo_wr_en(fifo_wr_en), 
+    .fifo_clr(1'b0),
     .fifo_full(fifo_full),
     .fifo_empty(), 
-    .fifo_half_full(fifo_half_full)
   );
 
   DrumPad_input_processor #(4, 15) input_proc (
@@ -96,16 +97,22 @@ module DrumPadDemo(
     .fifo_data(fifo_data)
   );
 
-  Memory  #(16, 2**16, "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/basic_drums.dat") mem (
+  // Memory  #(16, 2**16, "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/basic_drums.dat") mem (
+  //   .clk(CLOCK_50), 
+  //   .wr_en1('h0), 
+  //   .wr_en2('h0),
+  //   .addr1(mem_addr), 
+  //   .addr2('h0),
+  //   .wr_data1('h0),
+  //   .wr_data2('h0),
+  //   .rd_data1(mem_rd_data),
+  //   .rd_data2()
+  // );
+
+  ROM #(16, 16, "/home/aidan/Classes/Fall24/ECE3710/TeamProject/repo/mem_files/basic_drums.dat") rom (
     .clk(CLOCK_50), 
-    .wr_en1('h0), 
-    .wr_en2('h0),
-    .addr1(mem_addr), 
-    .addr2('h0),
-    .wr_data1('h0),
-    .wr_data2('h0),
-    .rd_data1(mem_rd_data),
-    .rd_data2()
+    .addr(mem_addr), 
+    .data(mem_rd_data)
   );
 
 endmodule

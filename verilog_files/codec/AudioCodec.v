@@ -9,7 +9,7 @@ module AudioCodec #(parameter DATA_WIDTH = 16)
   input clk, 
   input reset_n, 
 
-  input reset_config_n,
+  // input reset_config_n,
   input en,
 
   input [DATA_WIDTH - 1:0] audio_data,
@@ -43,16 +43,16 @@ module AudioCodec #(parameter DATA_WIDTH = 16)
   wire lrclk_falling_edge; 
   // wire reset;
   wire init_complete;
-  // wire reset_config_n;
+  wire reset_config_n;
+  wire pll_not_locked;
 
   // -------------------- 
   // Combinational Logic 
   // --------------------
 
   // convert to active high
-  // assign reset = ~reset_n;
 
-  // assign reset_config_n = ~pll_not_locked;
+  assign reset_config_n = ~pll_not_locked;
 
   // -------------- 
   // Modules 
@@ -69,7 +69,7 @@ module AudioCodec #(parameter DATA_WIDTH = 16)
     .audio_clk_clk(AUD_XCK), 
     .ref_clk_clk(clk),
     .ref_reset_reset(1'b0), 
-    .reset_source_reset()
+    .reset_source_reset(pll_not_locked)
   );
 
   AudioCodec_config codec_config (

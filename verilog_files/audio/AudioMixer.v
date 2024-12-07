@@ -35,11 +35,16 @@ module AudioMixer #(parameter DATA_WIDTH = 16, ADDR_WIDTH = 18, CONCURRENT_SAMPL
   // ************************* 
 
   // length of each sample
+  // localparam  [ADDR_WIDTH - 1:0]
+  //             SAMPLE0_LENGTH      = 17'h6995, 
+  //             SAMPLE1_LENGTH      = 17'h60df, 
+  //             SAMPLE2_LENGTH      = 17'h1f29, 
+  //             SAMPLE3_LENGTH      = 17'h2752;
   localparam  [ADDR_WIDTH - 1:0]
-              SAMPLE0_LENGTH      = 17'h6995, 
-              SAMPLE1_LENGTH      = 17'h60df, 
-              SAMPLE2_LENGTH      = 17'h1f29, 
-              SAMPLE3_LENGTH      = 17'h2752;
+              SAMPLE0_LENGTH      = 17'h604b, 
+              SAMPLE1_LENGTH      = 17'h391a, 
+              SAMPLE2_LENGTH      = 17'h2fdd, 
+              SAMPLE3_LENGTH      = 17'h2840;
             
   // base memory addresses of each sample
   localparam  [ADDR_WIDTH - 1:0] 

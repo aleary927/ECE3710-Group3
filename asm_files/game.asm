@@ -448,6 +448,7 @@
   ADDI $1 %r7     # next window
   BUC .__vga_reset_window_loop
 .__vga_reset_done
+  CALL ._visual_update_set_score
   LREG %r9
   LREG %r8
   LREG %r7
@@ -476,7 +477,7 @@
   
   ADDI $1 %r1     # calc address for ms offset into window
   LOAD %rC %r1    # load ms offset into window
-  MOVW $400 %r2   # load ms per tile
+  MOVW `WINDOW_LENGTH_MS %r2   # load ms per tile
   SUB %rC %r2     # subtract ms offset from ms per tile to get ms remaining in tile
 # find dimensions of current tile, bottom of display is always start of first tile
 # end of first tile offset from display end is number of ms remaining in block divided by ms per pixel
@@ -532,9 +533,9 @@
   MOV %r5 %r1   # move previous tile top
   SUBI $1 %r1   # sub 1 from last tile end to get new tile bottom
   SUB %r3 %r5   # subtract tile length from last tile top to get new top
-  CMPI $0 %r5   # compare top to 0
+  CMPI $0 %r5   # compare 0 to top
   BLE .__visual_update_window_in_bounds
-  MOVI $0 %r5   # if not in bounds, set top to be 0
+  MOVI $1 %r5   # if not in bounds, set top to be 0
 .__visual_update_window_in_bounds
   MOVI $0 %r4      # count of lanes, from 0 through 3
 # subloop for going through lanes of window
@@ -568,6 +569,7 @@
   BUC .__visual_update_window_loop
 
 .__visual_update_end
+  CALL ._visual_update_set_score
   LREG %r9
   LREG %r8
   LREG %r7 
@@ -622,6 +624,14 @@
   LREG %r0
   RET
 
+._visual_update_set_score 
+  MOVW `GRAPHICS_BASE_ADDR %rA 
+  ADDI $32 %rA
+  MOVW `GAME_SCORE_ADDR %rB
+  LOAD %rB %rB
+  STOR %rB %rA
+  RET
+
 ############################## 
 # MUSIC CTRL PROCEDURES
 ##############################
@@ -662,7 +672,9 @@
 .__drumpad_input_loop
   MOV %rC %rD     # move bitmask 
   AND %rA %rD     # apply bitmask
-  LSH %rB %rD     # shit by drumpad num so that val is 1 or 0
+  MOVI $0 %r2
+  SUB %rB %r2   # invert drumpad num to get bits to shift by
+  LSH %r2 %rD     # shit by drumpad num so that val is 1 or 0
 # load current value, add, and store back
   MOV %r0 %r1   # move base addr
   ADD %rB %r1   # calc address by adding offset to base addr

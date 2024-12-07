@@ -1,0 +1,32 @@
+End Users Guides for Music Tiles Demo
+
+
+1. Basic Setup.
+Make sure the following components are ready and connected:
+A speaker with an 3.5mm AUX cable for playing the audio track and the sample.
+A monitor with a VGA input port to project the gameplay.
+and for user drum inputs, 4 rubber pads, on a soft material such as towel or foam that will prevent unwanted input caused by the table, connected to the op-amp circuit.
+
+
+2. Visuals & Functions.
+On the monitor, user will see 4 vertical lanes with each of them having a block for user input at the bottom.
+Also on the top right of the monitor, user will see three lines: RHYTHM // SCORE // 120.
+
+There are 4 drum pads placed horizontally.
+The first pad on the very left plays bass guitar note C.
+The second pad, which follows the first pad, plays bass guitar note B.
+The third pad plays low pitch snare.
+The last one on the very right plays high pitch snare.
+These drum pad will let out a sound even if the music tiles games has not started yet.
+
+
+3. Gameplay.
+Out of the four buttons on the DE1-SoC board, press the third button to reset the score.
+Press the first button to start.
+The soundtrack(or, the game) is 65 seconds long with 4 seconds silence at the beginning.
+As the music starts playing, from the 4 lanes on the monitor, white tiles will start falling with a predetermined pattern according to the music.
+User is expected to strike the corresponding drum pad when the falling white tile reaches the bottom.
+For example, user is expected to strike the first pad, when a white tile falling on the first lane on the monitor, reaches the bottom.
+User is given 0.5 second for each block to strike at the right timing to preserve the point.
+When the drum pad is struck too early or late, the score drops by 1 point for each tiles.
+

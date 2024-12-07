@@ -1,19 +1,6 @@
 \documentclass{subfile} 
 
 \begin{document}
-  In order to communicate with the peripherals, the CPU needs some memory mapping so that it 
-  can communicate using simple memory reads and writes.
-  The memory-mapped I/O space in this design is very small, spanning just less than 16 addresses. 
-  These addresses are aligned at the top of the address space, so the most significant 
-  12 bits of address space being high indicate that data should come from or be 
-  written to an I/O register instead of memory.
-
-  Nothing will happen if trying to write to a I/O address that is invalid, and if trying to 
-  read from an invalid I/O address, the data will come back as all zeros.
-  Writing to a read-only peripheral results in that data being lost, because it will be 
-  written to memory but it will not be retrievable. 
-  All peripherals which can be written to can also be read from as well.
-
   \begin{table}[h]
     \caption{Peripheral Addresses} 
     \label{tab:addrs}
@@ -31,7 +18,22 @@
       VGA vCount & 0xFFF9 \\ \hline 
       Music Control & 0xFFF8 \\ \hline 
       Drum Pads & 0xFFF7 \\ \hline 
+      Song Done & 0xFFF6 \\ \hline
     \end{tabular}
   \end{table}
+
+  In order to communicate with the peripherals, the CPU needs some memory mapping so that it 
+  can communicate using simple memory reads and writes.
+  The memory-mapped I/O space in this design is very small, spanning just less than 16 addresses. 
+  These addresses are aligned at the top of the address space, so the most significant 
+  12 bits of address space being high indicate that data should come from or be 
+  written to an I/O register instead of memory.
+
+  Nothing will happen if trying to write to a I/O address that is invalid, and if trying to 
+  read from an invalid I/O address, the data will come back as all zeros.
+  Writing to a read-only peripheral results in that data being lost, because it will be 
+  written to memory but it will not be retrievable. 
+  All peripherals which can be written to can also be read from as well.
+
   
 \end{document}

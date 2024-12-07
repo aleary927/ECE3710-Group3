@@ -1,7 +1,10 @@
-\documentclass[10pt, letterpaper]{IEEEconf} 
+\documentclass[10pt, letterpaper]{IEEEtran} 
 
 \usepackage{subfiles}
 \usepackage{biblatex}
+\usepackage{graphicx}
+
+\graphicspath{{../}{../schematics/}}
 
 \addbibresource{subfiles/Bib.bib}
 
@@ -9,7 +12,7 @@
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
 
-\title{ECE 3710 Music Tile Final Project\\
+\title{ECE 3710 Music Tiles Final Project\\
 }
 
   \author{
@@ -20,7 +23,7 @@
   \maketitle
 
   \begin{abstract}
-The Musical Tile project focuses on developing a rhythm game on the Terasic DE1-SoC FPGA 
+The Music Tiles project focuses on developing a rhythm game on the Terasic DE1-SoC FPGA 
 development board, 
 utilizing four physical drum pads as input devices. Players interact with falling notes 
 displayed on a VGA screen by synchronizing their inputs with visual cues, providing a 
@@ -75,12 +78,9 @@ offering a unique and engaging rhythm game experience.
   \section{Conclusion}
   \subfile{subfiles/Conclusion.tex}
 
-  \section*{Acknowledgments}
-  add Acknowledgments
-
-  \cite{TestResource}
-
+  \nocite{*}
   \printbibliography
+  
   
 \end{document}
 

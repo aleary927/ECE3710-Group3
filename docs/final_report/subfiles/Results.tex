@@ -1,8 +1,35 @@
 \documentclass{subfile} 
 
 \begin{document}
-The system achieved smooth synchronization with no evident latency and a flicker-free display of the game elements. Tiles moved at a consistent and adjustable speed, showcasing the precision timing and responsiveness of the FPGA-based design. The display of player scores and tile interactions at the termination timing line behaved as expected. The trigger of drum pads associated with distinct sounds operated well, with no noticeable delay or disruption; this, in conjunction with sufficient audio quality from the music, created an engaging auditory layer that complemented the visual elements of the game. These features demonstrated the system's ability to handle real-time input processing and graphical rendering concurrently. 
-While the rhythm tile game demonstrated strong functionality in its final implementation and its core mechanics operated without issue, it was limited to a single level. The absence of additional levels posed no progressive difficulty for players. This limitation was primarily due to time constraints and a focus on ensuring the stability of the primary features, like VGA display synchronization, tile rendering, and drum pad coordination. The lack of extra levels could be remedied by expanding memory options external to the FPGA to support complex display patterns and different songs associated with different levels. 
+The system achieved smooth synchronization with no evident latency and a flicker-free 
+display of the game elements. 
+Tiles moved at a consistent speed, in sync with the music, showcasing the precision timing and 
+responsiveness of the FPGA-based design. 
+The display of player scores and tile interactions behaved as expected. 
+The trigger of drum pads associated with distinct sounds operated exceptionally well, with 
+no noticeable delay or disruption; this, in conjunction with good quality 
+audio streaming from the music, created an engaging auditory layer that was  
+complemented by the visual elements of the game. 
+These features demonstrated the system's ability to handle real-time input 
+processing and graphical rendering concurrently. 
+
+While the rhythm tile game demonstrated strong functionality in its final 
+implementation and its core mechanics operated without issue, it was 
+limited to a single level. 
+The absence of additional levels posed no progressive difficulty for players. 
+This limitation was primarily due to time constraints and a focus on 
+ensuring the stability of the primary features, like VGA display synchronization, 
+tile rendering, and drum pad coordination. The lack of extra levels 
+could be remedied by expanding memory options external to the FPGA to allow for 
+more audio samples to be accessed by the FPGA at once.
+One way that this could be accomplished is by moving the audio samples to the HPS, 
+averting the block ram resource limitation.
+
+Another improvement that would have been nice to have is encoding exact note locations, rather 
+than using contiguous identically-sized windows. 
+This would have made the programming significantly more complicated however, requiring too 
+much time.
+
 Overall, the foundational framework of the game is robust and versatile and would be able to support the aforementioned additions. 
 
 \end{document}

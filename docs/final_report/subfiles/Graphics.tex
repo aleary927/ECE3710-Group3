@@ -21,14 +21,15 @@
   \subsection{Dynamic Score Rendering}
   The score display system dynamically converts the current score into its individual digits and maps them to their corresponding glyphs, ensuring that the displayed score reflects the game's state to the player. 
 
-  \subsection{Synchronization and Display Quality}
-  The module achieved a stable and synchronized non-flicker display. Dynamic elements such as moving tiles and changing scores behaved as expected without any noticeable latency or glitches.
-
+  % \subsection{Synchronization and Display Quality}
+  % The module achieved a stable and synchronized non-flicker display. Dynamic elements such as moving tiles and changing scores behaved as expected without any noticeable latency or glitches.
+  %
 
   \subsection{Challenges and Future Improvements}
   While the module performed effectively, some challenges were identified:
   \begin{itemize}
-      \item \textbf{Memory Consumption:} The glyph table occupies a substantial portion of the available RAM. 
+      \item \textbf{Memory Consumption:} The rest of the design occupied most of the block 
+        ram on the FPGA, making integrating the glyph table into the design challenging
       \item \textbf{Scaling:} The current design is made for a 640x480 resolution. Higher resolutions may require further optimization.
       \item \textbf{Glyph Resolution:} Future designs could explore variable-width/height glyphs, potentially improving text rendering quality further.
   \end{itemize}

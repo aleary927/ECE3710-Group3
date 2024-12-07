@@ -17,9 +17,53 @@
   This setup means that the synchronization procedures are the only ones accessing the millisecond 
   counter, and the drum pad processing procedures are the only ones accessing the drum pad I/O address.
 
+  A simple caller-callee register convention is used, utilizing registers 0 through 9 as callee 
+  saved, and registers 10 through 13 as caller saved.
+  The top two registers are the return address and the stack pointer, respectively.
+  Registers 10 through 13 are used to pass arguments to methods, and register 10 is used 
+  as the return value.
+
   \subsection{Synchronization} 
+  The synchronization code is tasked with keeping track of time, including which window number 
+  is currently active. 
+  This is done with the help of the hardware millisecond timer. 
+  This is accomplished by recording the number of milliseconds corresponding to the 
+  current window's start, and then comparing that value to the current millisecond count. 
+  When the difference between these two values reaches the length of a window, the current 
+  window number is incremented. 
+  In addition to the window number, the window offset (number of milliseconds that have passed 
+  since current window start) is also recorded.
+  This information is stored in a global data structure so that the score keeping and visual 
+  code can access it easily.
 
   \subsection{Score Keeping}
+  Read-only data is used to identify which drum pads are expected to be struck during each 
+  window.
+  At the end of each window, the expectation of which drum pads are to be struck is 
+  compared with which was actually struck. 
+  For each drum pad input that doesn't match the expectation, the score is subtracted 
+  from.
 
   \subsection{Visual Update}
+  The VGA system reads tile bounds (up to 4 for each lane) from a defined memory address. 
+  This means that the visual code only needs to produce y coordinates for each tile.
+
+  The aforementioned read-only data is also used for updating the display.
+  The display refresh code takes the current window number, and uses it to examine the read-only 
+  data and determine how tiles should be displayed on the screen. 
+  The offset into the current window is particularly important, as it determines where the end 
+  of the first row of tiles is.
+  From there, the tile sizes are equal so all it takes is some simple arithmetic to find the 
+  bounds of each successive tile.
+  For the first row of tiles, the current status of the drum pad inputs is considered in 
+  order to decide if each tile in the row should be colored red to indicate a drum pad strike.
+  
+  It is important to note that pixels on the screen do not correspond exactly to milliseconds, 
+  so there is some conversion necessary. 
+  This conversion is done by dividing by 4, as the length of a tile in pixels is 125, and 
+  the window length in milliseconds is 500.
+
+  Also an important detail of the display code is that visual refresh is triggered by loading 
+  the current VGA vertical count, and checking if it is on the last row. 
+  This ensures that the display data is not updated when it is being read by the VGA controller.
 \end{document}

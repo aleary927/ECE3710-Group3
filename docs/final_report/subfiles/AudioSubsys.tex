@@ -44,10 +44,8 @@
   The ROM makes a lot of sense here, as the samples are never modified during 
   run-time, so there was no need to include them in the CPUs memory.
 
-  % TODO reference to cv mem docs for max block mem address space
   In the Cyclone V memory documentation, the valid values for the size of a single block of 
-  on-chip block memory max out at a
-  16 bit address space. 
+  on-chip block memory max out at a 16 bit address space. \cite{cv_ram}
   This means that it made the most sense to use multiple 16-bit address space blocks of 
   memory/ROM and link them together manually when more space is needed. 
   Using this approach, a ROM with a 17 bit address space was created that could fit within 
@@ -61,12 +59,12 @@
   This codec is a very versatile chip, meaning that there is a lot of configurations 
   available.
   There are ten configuration registers internal to the codec that can be written to via I2C, 
-  allowing for things such as sample rate, volume, and data path configuration.
+  allowing for things such as sample rate, volume, and data path configuration. \cite{codec}
   In the case of this design, the audio codec is configured for 48 kHz playback.
 
   Another requirement to use the codec is to instantiate a PLL on the FPGA. 
   This is necessary because the codec requires extremely specific frequencies in order 
-  to keep the correct sampling rate (18.2896 MHz in this case).   % TODO change freq
+  to keep the correct sampling rate (18.432203 MHz in this case).   
   Luckily, Quartus makes this extremely easy due to a preconfigured audio PLL being 
   available as IP in the platform designer.
 

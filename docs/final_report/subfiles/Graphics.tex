@@ -2,7 +2,7 @@
 
 
 \begin{document}
-  \subsection{Results and Evaluation}
+  % \subsection{Results and Evaluation}
 
   The implementation of the VGA module successfully rendered visual elements on a VGA display using the FPGA. This module integrates pixel synchronization and glyph generation.
 
@@ -14,7 +14,7 @@
   \subsection{Glyph Compression and Rendering}
   The `glyph\_rom` was structured as follows:
   \begin{itemize}
-      \item Glyph rows were stored sequentially in a shared array with offsets indicating each character's starting position.
+      \item Glyph rows are stored sequentially in a shared array with offsets indicating each character's starting position.
       \item Each row uses a 12-bit representation to maintain sufficient resolution for character rendering.
   \end{itemize}
 
@@ -40,6 +40,6 @@
       \item Modular design for scaling across different display resolutions.
   \end{itemize}
 
-  \subsection{Conclusion}
-  Concluding, the final VGA module consists of the integration of compressed glyph data, real-time memory-mapped updates, and stable synchronization. 
+%   \subsection{Conclusion}
+%   Concluding, the final VGA module consists of the integration of compressed glyph data, real-time memory-mapped updates, and stable synchronization. 
 \end{document}

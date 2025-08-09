@@ -120,19 +120,6 @@ module CPU_Controller(
   localparam NULL_STATE      = 4'b0000;   // maybe unnecessary ??
   localparam FETCH           = 4'b0001;  // Instruction Fetch
   localparam EXECUTE         = 4'b0010;
-	// localparam DECODE          = 4'b0010;  // Decode
-	// localparam ALULOAD         = 4'b0011;  // Load operands for ALU operation, could further separate this into more states to remove extra logic in assignment. 
-	// localparam ALU             = 4'b0100;  // Execute ALU operation
-	// localparam DATAMOVE        = 4'b0101;  // Data Movement (MOV, MOVI)
-	// localparam SHIFT           = 4'b0110;  // Shift Operations (LSH, ASHU, etc.)
-	// localparam IMMLOAD         = 4'b0111;  // Immediate Load (LUI, etc.)
-	// localparam ADDRCALC        = 4'b1000;  // Address Calculation for Load/Store
-	// localparam MEMREAD         = 4'b1001;  // Memory Read for LOAD
-	// localparam MEMWRITE        = 4'b1010;  // Memory Write for STORE
-	// localparam JUMP            = 4'b1011;  // Jump Operation
-	// localparam BRANCH          = 4'b1100;  // Branch base state
-	// localparam SIGNEXTEND      = 4'b1101;  // Sign Extend (SXRB)
-	// localparam REGWRITE        = 4'b1110;  // Write-Back State
 
   // *************************** 
   // Internal Wires / Regs 
@@ -163,112 +150,6 @@ module CPU_Controller(
         default:
           next_state = FETCH;
       endcase
-		 // 		// next_state = DECODE;
-		 //
-		 //   DECODE: 
-		 //
-		 // 	 case (opcode)
-		 // 		  RS_RD_OP: begin
-		 // 				case (opcode_ext)
-		 // 					 ADD_EXT:  next_state = ALULOAD; // ADD
-		 // 					 // ADDU_EXT:  next_state = ALULOAD; // ADDU (not implemented)
-		 // 					 // ADDC_EXT:  next_state = ALULOAD; // ADDC (not implemented)
-		 // 					 SUB_EXT:  next_state = ALULOAD; // SUB
-		 // 					 SUBC_EXT:  next_state = ALULOAD; // SUBC
-		 // 					 CMP_EXT:  next_state = ALULOAD; // CMP
-		 // 					 AND_EXT:  next_state = ALULOAD; // AND
-		 // 					 OR_EXT:  next_state = ALULOAD; // OR
-		 // 					 ORI_EXT: next_state = ALULOAD; // XOR
-		 // 					 MOV_EXT: next_state = DATAMOVE; // MOV
-		 // 					 default: next_state = FETCH; 
-		 // 				endcase
-		 // 		  end
-		 //
-		 // 		  LD_ST_J_OP: begin
-		 // 				case (opcode_ext)
-		 // 					 STOR_EXT: next_state = ADDRCALC; // STOR
-		 // 					 LOAD_EXT: next_state = ADDRCALC;  // LOAD
-		 // 				   SNXB_EXT: next_state = SIGNEXTEND ; // SNXB
-		 // 					 ZRXB_EXT: next_state = SIGNEXTEND ; // ZRXB
-		 //
-		 // 					 SCOND_EXT: next_state = BRANCH; // Scond
-		 // 					 JCOND_EXT: next_state = JUMP; // Jcond
-		 // 					 JAL_EXT: next_state = JUMP; // JAL
-		 // 					 TBIT_EXT: next_state = REGWRITE; // TBIT
-		 // 					 TBITI_EXT: next_state = REGWRITE; // TBITI
-		 // 					 LPR_EXT: next_state = REGWRITE; // LPR
-		 // 					 SPR_EXT: next_state = REGWRITE; // SPR
-		 // 					 default: next_state = FETCH; // DI, EI, EXCP, RETX, unused cases
-		 // 				endcase
-		 // 		  end
-		 //
-		 // 		  ADDI_OP: next_state = ALULOAD; // ADDI
-		 //
-		 // 		  // ADDUI_OP: next_state = ALULOAD; // ADDUI (not implemented)
-		 //
-		 // 		  // ADDCI_OP: next_state = ALULOAD; // ADDCI (not implemented)
-		 //
-		 // 		  SH_OP: next_state = SHIFT; // LSH LSHI ASHU ASHUI
-		 //
-		 // 		  SUBI_OP: next_state = ALULOAD; // SUBI
-		 //
-		 // 		  // SUBCI_OP: next_state = ALULOAD; // SUBCI (not implemented)
-		 //
-		 // 		  CMPI_OP: next_state = ALULOAD; // CMPI
-		 //
-		 // 		  BCOND_OP: next_state = BRANCH; // Bcond
-		 //
-		 // 		  MOVI_OP: next_state = DATAMOVE; // MOVI
-		 //
-		 // 		  MULI_OP: next_state = ALULOAD; // MULI
-		 //
-		 // 		  LUI_OP: next_state = IMMLOAD; // LUI
-		 //
-		 // 		  default: next_state = FETCH; // undefined opcodes
-		 // 	 endcase
-		 //
-		 //
-		 //   ALULOAD: 
-		 // 		next_state = ALU;
-		 //
-		 //   ALU: 
-		 // 		next_state = REGWRITE;                 // reg write-back after ALU operation	
-		 //
-		 //   DATAMOVE: 
-		 // 		next_state = REGWRITE;                 // reg write-back after data movement
-		 //
-		 //   SHIFT: 
-		 // 		next_state = REGWRITE;                 // reg write-back after shift operation
-		 //
-		 //   IMMLOAD: 
-		 // 		next_state = REGWRITE;                 // REG write-back after immediate load
-		 //
-		 //   ADDRCALC: 
-		 // 		next_state = MEMREAD;                  // go to memory read after address calculation
-		 //
-		 //   MEMREAD: 
-		 // 		next_state = REGWRITE;                 // Write-back after memory read (load)
-		 //
-		 //   MEMWRITE: 
-		 // 		next_state = FETCH;                    // Return to fetch after memory write (store)
-		 //
-		 //   JUMP: 
-		 //    // NEED CONDITIONAL CASES HERE OR IN OUTPUT LOGIC
-		 // 		next_state = FETCH;                
-		 //
-		 //   BRANCH: 
-		 // 	// NEED CONDITIONAL CASES HERE OR IN OUTPUT LOGIC
-		 // 		next_state = FETCH; 
-		 //
-		 //   SIGNEXTEND: 
-		 // 		next_state = REGWRITE;                 // Write-back after sign extension
-		 //
-		 //   REGWRITE: 
-		 // 		next_state = FETCH;                    // Return to fetch after register write-back
-		 //
-		 //   default: 
-		 // 		next_state = FETCH;                    // Default to fetch state
-		 // endcase
 	end
 	
 
